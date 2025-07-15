@@ -1,0 +1,8 @@
+[settings]
+python.uv_venv_auto = true
+
+[tasks.format]
+run = "ruff format"
+
+[tasks.check]
+run = "ruff check"
