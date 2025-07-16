@@ -1,14 +1,47 @@
 [project]
 name = "estat-api-dlt-helper"
-version = "0.1.0"
-description = "Add your description here"
+dynamic = ["version"]
+description = "e-Stat APIを使ってデータを取得し、dltを使ってデータをロードするためのヘルパーライブラリ"
 readme = "README.md"
-authors = [
-    { name = "K-Oxon", email = "ko1011qfp@gmail.com" }
+authors = [{ name = "K-Oxon", email = "ko1011qfp@gmail.com" }]
+requires-python = ">=3.11"
+keywords = ["dlt", "e-stat", "estat", "api", "helper", "etl", "elt"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Topic :: Software Development :: Libraries",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
 ]
-requires-python = ">=3.13"
-dependencies = []
+dependencies = ["dlt>=1.13.0", "pyarrow>=20.0.0", "pydantic>=2.11.7"]
+
+[project.urls]
+Homepage = "https://github.com/K-Oxon/estat_api_dlt_helper"
+Repository = "https://github.com/K-Oxon/estat_api_dlt_helper"
+Issues = "https://github.com/K-Oxon/estat_api_dlt_helper/issues"
 
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/estat_api_dlt_helper"]
+
+[tool.hatch.version]
+path = "src/estat_api_dlt_helper/__init__.py"
+
+[dependency-groups]
+dev = ["pyright>=1.1.403", "pytest>=8.4.1", "ruff>=0.12.3"]
+
+[project.optional-dependencies]
+snowflake = ["dlt[snowflake]"]
+bigquery = ["dlt[bigquery]"]
+duckdb = ["dlt[duckdb]"]
+filesystem = ["dlt[filesystem]"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
