@@ -45,3 +45,8 @@ filesystem = ["dlt[filesystem]"]
 [tool.pytest.ini_options]
 pythonpath = ["src"]
 testpaths = ["tests"]
+
+[tool.pyright]
+include = ["src"]
+exclude = ["**/__pycache__", "tests/unit/test_config.py"]
+typeCheckingMode = "basic"

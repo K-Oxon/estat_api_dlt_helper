@@ -114,7 +114,9 @@ class ArrowConverter:
             for col in value_columns:
                 if col == "value":
                     # Handle numeric value column ($ field)
-                    numeric_values = [self._parse_numeric_value(v.get("$")) for v in values]
+                    numeric_values = [
+                        self._parse_numeric_value(v.get("$")) for v in values
+                    ]
                     data_dict[col] = pa.array(numeric_values, type=pa.float64())
                 else:
                     # Handle string columns (@ prefixed fields)
