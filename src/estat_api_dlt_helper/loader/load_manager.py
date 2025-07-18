@@ -2,7 +2,14 @@
 
 from typing import Any, Dict, Optional
 
+import dlt
+
 from ..config.models import EstatDltConfig
+from ..utils.logging import get_logger
+from .dlt_pipeline import create_estat_pipeline
+from .dlt_resource import create_estat_resource
+
+logger = get_logger(__name__)
 
 
 def load_estat_data(
@@ -10,7 +17,7 @@ def load_estat_data(
     *,
     credentials: Optional[Dict[str, Any]] = None,
     **kwargs: Any,
-) -> None:
+) -> Any:  # dlt.common.pipeline.LoadInfo
     """
     Load e-Stat API data to the specified destination using DLT.
 
@@ -22,8 +29,8 @@ def load_estat_data(
         credentials: Optional credentials to override destination credentials
         **kwargs: Additional arguments passed to pipeline.run()
 
-    Raises:
-        NotImplementedError: This is just an interface, implementation pending
+    Returns:
+        LoadInfo object containing information about the load operation
 
     Example:
         ```python
@@ -36,7 +43,7 @@ def load_estat_data(
                 "limit": 10
             },
             "destination": {
-                "dwh": "duckdb",
+                "destination": "duckdb",
                 "dataset_name": "demo",
                 "table_name": "demo",
                 "write_disposition": "merge",
@@ -45,7 +52,39 @@ def load_estat_data(
         }
 
         config = EstatDltConfig(**config)
-        load_estat_data(config)
+        info = load_estat_data(config)
+        print(info)
         ```
     """
-    raise NotImplementedError("load_estat_data implementation is pending")
+    logger.info("Starting e-Stat data load process")
+
+    try:
+        # Override credentials if provided
+        if credentials:
+            config.destination.credentials = credentials
+
+        # Create the resource
+        logger.debug("Creating e-Stat resource")
+        resource = create_estat_resource(config)
+
+        # Create the pipeline
+        logger.debug("Creating DLT pipeline")
+        pipeline = create_estat_pipeline(config)
+
+        # Run the pipeline
+        logger.info(
+            f"Running pipeline for stats_data_id: {config.source.statsDataId} "
+            f"to {config.destination.destination}/{config.destination.dataset_name}/"
+            f"{config.destination.table_name}"
+        )
+
+        info = pipeline.run(resource, **kwargs)
+
+        # Log results
+        logger.info(f"Load completed: {info}")
+
+        return info
+
+    except Exception as e:
+        logger.error(f"Error during data load: {e}")
+        raise

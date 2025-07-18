@@ -34,7 +34,13 @@ packages = ["src/estat_api_dlt_helper"]
 path = "src/estat_api_dlt_helper/__init__.py"
 
 [dependency-groups]
-dev = ["pyright>=1.1.403", "pytest>=8.4.1", "ruff>=0.12.3"]
+dev = [
+    "dlt[duckdb]>=1.13.0",
+    "pandas>=2.3.1",
+    "pyright>=1.1.403",
+    "pytest>=8.4.1",
+    "ruff>=0.12.3",
+]
 
 [project.optional-dependencies]
 snowflake = ["dlt[snowflake]"]

@@ -1,10 +1,6 @@
-"""Configuration module for estat_api_dlt_helper."""
+"""Configuration models for e-Stat API DLT helper."""
 
-from .models import (
-    DestinationConfig,
-    EstatDltConfig,
-    SourceConfig,
-)
+from .models import DestinationConfig, EstatDltConfig, SourceConfig
 
 __all__ = [
     "EstatDltConfig",

@@ -2,7 +2,12 @@
 
 from typing import Any, Optional
 
+import dlt
+
 from ..config.models import EstatDltConfig
+from ..utils.logging import get_logger
+
+logger = get_logger(__name__)
 
 
 def create_estat_pipeline(
@@ -19,7 +24,7 @@ def create_estat_pipeline(
     destination: Optional[Any] = None,
     staging: Optional[Any] = None,
     **pipeline_kwargs: Any,
-) -> Any:  # Returns dlt.Pipeline
+) -> Any:  # dlt.Pipeline
     """
     Create a DLT pipeline for e-Stat API data loading.
 
@@ -43,9 +48,6 @@ def create_estat_pipeline(
     Returns:
         dlt.Pipeline: Configured DLT pipeline
 
-    Raises:
-        NotImplementedError: This is just an interface, implementation pending
-
     Example:
         ```python
         from estat_api_dlt_helper import EstatDltConfig, create_estat_pipeline
@@ -62,4 +64,66 @@ def create_estat_pipeline(
         )
         ```
     """
-    raise NotImplementedError("create_estat_pipeline implementation is pending")
+    # Determine pipeline name
+    name = pipeline_name or config.destination.pipeline_name
+    if not name:
+        # Generate default pipeline name
+        stats_id = config.source.statsDataId
+        if isinstance(stats_id, list):
+            stats_id = "_".join(stats_id[:3])  # Limit to first 3 IDs
+            if len(config.source.statsDataId) > 3:
+                stats_id += "_etc"
+        else:
+            stats_id = stats_id
+
+        name = f"estat_{config.destination.dataset_name}_{stats_id}"
+
+    # Prepare destination configuration
+    dest = destination or config.destination.destination
+
+    # Handle destination-specific configurations
+    if isinstance(dest, str):
+        # String destination name
+        if config.destination.credentials:
+            # Create destination with credentials
+            # For now, just use the string destination name
+            # DLT will handle the destination creation internally
+            pass
+
+    # Prepare pipeline configuration
+    pipeline_config = {
+        "pipeline_name": name,
+        "destination": dest,
+        "dataset_name": dataset_name or config.destination.dataset_name,
+    }
+
+    # Add optional parameters with proper defaults
+    if dev_mode is not None:
+        pipeline_config["dev_mode"] = dev_mode
+    elif config.destination.dev_mode is not None:
+        pipeline_config["dev_mode"] = config.destination.dev_mode
+
+    # Add other optional parameters
+    optional_params = {
+        "pipelines_dir": pipelines_dir,
+        "import_schema_path": import_schema_path,
+        "export_schema_path": export_schema_path,
+        "refresh": refresh,
+        "progress": progress,
+        "staging": staging,
+    }
+
+    for key, value in optional_params.items():
+        if value is not None:
+            pipeline_config[key] = value
+
+    # Add any additional pipeline kwargs
+    pipeline_config.update(pipeline_kwargs)
+
+    # Create and return the pipeline
+    logger.info(
+        f"Creating pipeline '{name}' for destination '{dest}' "
+        f"with dataset '{pipeline_config['dataset_name']}'"
+    )
+
+    return dlt.pipeline(**pipeline_config)
