@@ -159,7 +159,7 @@ def create_estat_resource(
         stats_data_ids = [stats_data_ids]
 
     # Prepare resource configuration
-    resource_config = {
+    resource_config: Dict[str, Any] = {
         "name": name or config.destination.table_name,
         "write_disposition": write_disposition or config.destination.write_disposition,
     }
@@ -196,7 +196,7 @@ def create_estat_resource(
     # Add any additional resource kwargs
     resource_config.update(resource_kwargs)
 
-    @dlt.resource(**resource_config)
+    @dlt.resource(**resource_config)  # type: ignore
     def estat_data() -> Generator[pa.Table, None, None]:
         """Generator function for e-Stat data."""
         client = EstatApiClient(app_id=config.source.app_id)

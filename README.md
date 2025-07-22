@@ -137,7 +137,7 @@ print(info)
 
 ### parse_responseの使い方 (Advanced)
 
-`load_estat_data()`は簡単な設定でロードを可能にしますが、dltの細かい設定や機能を使いこなしたい場合は、
+`load_estat_data()`は簡単な設定でロードを可能にしますが、dltの細かい設定や機能を使いこなしたい場合(`dlt.transform`や`bigquery_adapter`など)は、
 dltのresourceとpipelineをそれぞれ単体で生成し、既存のdltのコードと同じように扱うこともできます。
 
 see: [examples (resource)](examples/resource_example.py)

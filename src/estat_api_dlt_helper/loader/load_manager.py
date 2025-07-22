@@ -2,7 +2,6 @@
 
 from typing import Any, Dict, Optional
 
-import dlt
 
 from ..config.models import EstatDltConfig
 from ..utils.logging import get_logger

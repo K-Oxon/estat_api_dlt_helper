@@ -29,8 +29,8 @@ uv run pytest -v
 4. Run linter: `uv run ruff check src/`
 5. Fix imports: `uv run ruff check src/ --select I --fix`
 6. Format code: `uv run ruff format src/`
-6. Commit your changes with a clear message
-7. Push to your fork and submit a pull request
+7. Commit your changes with a clear message
+8. Push to your fork and submit a pull request
 
 ## Code Style
 
