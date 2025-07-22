@@ -6,6 +6,7 @@ To run with actual API access, you need to set ESTAT_API_KEY environment variabl
 """
 
 import os
+
 from estat_api_dlt_helper.api.client import EstatApiClient
 
 
