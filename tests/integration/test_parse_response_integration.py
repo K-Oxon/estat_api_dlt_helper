@@ -60,10 +60,18 @@ def get_random_stat_ids(count: int = 20) -> List[str]:
         return []
 
 
-# Get API key from environment
+# Get API key from environment and check skip conditions
 APP_ID = os.getenv("ESTAT_API_KEY")
-if not APP_ID:
-    pytest.skip("ESTAT_API_KEY environment variable not set")
+SKIP_INTEGRATION = os.getenv("SKIP_INTEGRATION_TESTS", "").lower() == "true"
+
+if not APP_ID or SKIP_INTEGRATION:
+    skip_reason = []
+    if not APP_ID:
+        skip_reason.append("ESTAT_API_KEY environment variable not set")
+    if SKIP_INTEGRATION:
+        skip_reason.append("SKIP_INTEGRATION_TESTS is set to true")
+    
+    pytest.skip(" and ".join(skip_reason), allow_module_level=True)
 
 # Combine fixed IDs with random IDs from parquet
 RANDOM_STAT_IDS = get_random_stat_ids(15)  # Get 15 random IDs
