@@ -46,6 +46,10 @@ dev = [
 snowflake = ["dlt[snowflake]"]
 bigquery = ["dlt[bigquery]"]
 duckdb = ["dlt[duckdb]"]
+motherduck = ["dlt[motherduck]"]
+redshift = ["dlt[redshift]"]
+athena = ["dlt[athena]"]
+databricks = ["dlt[databricks]"]
 filesystem = ["dlt[filesystem]"]
 
 [tool.pytest.ini_options]

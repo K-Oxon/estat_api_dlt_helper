@@ -9,3 +9,75 @@ run = "ruff format"
 
 [tasks.check]
 run = "ruff check"
+
+[tasks.version-minor]
+description = "Bump minor version and create release tag"
+run = """
+# Get current version before bump
+OLD_VERSION=$(uv run hatch version)
+
+# Bump minor version
+uv run hatch version minor
+
+# Get new version
+VERSION=$(uv run hatch version)
+
+# Commit version change
+git add src/estat_api_dlt_helper/__init__.py
+git commit -m "Bump version from ${OLD_VERSION} to ${VERSION}"
+
+# Create and push tag
+git tag "v${VERSION}"
+git push origin main
+git push origin "v${VERSION}"
+
+echo "✅ Version bumped from ${OLD_VERSION} to ${VERSION} and released"
+"""
+
+[tasks.version-major]
+description = "Bump major version and create release tag"
+run = """
+# Get current version before bump
+OLD_VERSION=$(uv run hatch version)
+
+# Bump major version
+uv run hatch version major
+
+# Get new version
+VERSION=$(uv run hatch version)
+
+# Commit version change
+git add src/estat_api_dlt_helper/__init__.py
+git commit -m "Bump version from ${OLD_VERSION} to ${VERSION}"
+
+# Create and push tag
+git tag "v${VERSION}"
+git push origin main
+git push origin "v${VERSION}"
+
+echo "✅ Version bumped from ${OLD_VERSION} to ${VERSION} and released"
+"""
+
+[tasks.version-patch]
+description = "Bump patch version and create release tag"
+run = """
+# Get current version before bump
+OLD_VERSION=$(uv run hatch version)
+
+# Bump patch version
+uv run hatch version patch
+
+# Get new version
+VERSION=$(uv run hatch version)
+
+# Commit version change
+git add src/estat_api_dlt_helper/__init__.py
+git commit -m "Bump version from ${OLD_VERSION} to ${VERSION}"
+
+# Create and push tag
+git tag "v${VERSION}"
+git push origin main
+git push origin "v${VERSION}"
+
+echo "✅ Version bumped from ${OLD_VERSION} to ${VERSION} and released"
+"""
