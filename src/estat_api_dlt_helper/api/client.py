@@ -15,7 +15,7 @@ class EstatApiClient:
         self,
         app_id: str,
         base_url: Optional[str] = None,
-        timeout: int = 30,
+        timeout: int = 60,
     ):
         """Initialize e-Stat API client.
 

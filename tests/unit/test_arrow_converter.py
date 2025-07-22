@@ -209,7 +209,7 @@ class TestArrowConverter:
                 "STATISTICS_NAME": "Test",
                 "TITLE": {"@no": "001", "$": "Test"},
                 "CYCLE": "Test",
-                "SURVEY_DATE": 0,
+                "SURVEY_DATE": "0",
                 "OPEN_DATE": "2024-01-01",
                 "SMALL_AREA": 0,
                 "COLLECT_AREA": "Test",
@@ -240,3 +240,51 @@ class TestArrowConverter:
         
         assert isinstance(table, pa.Table)
         assert len(table) == 0
+    
+    def test_union_type_fields(self, arrow_converter):
+        """Test handling of Union type fields (survey_date, small_area, description)."""
+        data = {
+            "TABLE_INF": {
+                "@id": "test",
+                "STAT_NAME": {"@code": "001", "$": "Test"},
+                "GOV_ORG": {"@code": "001", "$": "Test"},
+                "STATISTICS_NAME": "Test",
+                "TITLE": {"@no": "001", "$": "Test"},
+                "CYCLE": "Test",
+                "SURVEY_DATE": 2024,  # Integer value
+                "OPEN_DATE": "2024-01-01",
+                "SMALL_AREA": "全国",  # String value
+                "COLLECT_AREA": "Test",
+                "MAIN_CATEGORY": {"@code": "01", "$": "Test"},
+                "SUB_CATEGORY": {"@code": "01", "$": "Test"},
+                "OVERALL_TOTAL_NUMBER": 1,
+                "UPDATED_DATE": "2024-01-01",
+                "STATISTICS_NAME_SPEC": {
+                    "TABULATION_CATEGORY": "Test",
+                    "TABULATION_SUB_CATEGORY1": "Test"
+                },
+                "DESCRIPTION": "Simple description",  # String value
+                "TITLE_SPEC": {
+                    "TABLE_NAME": "Test"
+                }
+            },
+            "CLASS_INF": {
+                "CLASS_OBJ": []
+            },
+            "DATA_INF": {
+                "VALUE": [
+                    {"@cat": "001", "$": "100"}
+                ]
+            }
+        }
+        
+        table = arrow_converter.convert_to_arrow(data)
+        
+        assert isinstance(table, pa.Table)
+        assert len(table) == 1
+        
+        # Check that Union type fields are converted to strings
+        stat_inf = table["stat_inf"][0].as_py()
+        assert stat_inf["survey_date"] == "2024"  # int -> str
+        assert stat_inf["small_area"] == "全国"   # str -> str
+        assert isinstance(stat_inf["description"], str)  # str -> str

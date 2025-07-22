@@ -135,7 +135,7 @@ class TestTableInf:
             "STATISTICS_NAME": "市区町村データ",
             "TITLE": {"@no": "0000020201", "$": "Ａ　人口・世帯"},
             "CYCLE": "年度次",
-            "SURVEY_DATE": 0,
+            "SURVEY_DATE": "0",
             "OPEN_DATE": "2024-06-21",
             "SMALL_AREA": 0,
             "COLLECT_AREA": "市区町村",
@@ -161,8 +161,105 @@ class TestTableInf:
         assert table_inf.stat_name.value == "社会・人口統計体系"
         assert table_inf.statistics_name == "市区町村データ"
         assert table_inf.cycle == "年度次"
-        assert table_inf.survey_date == 0
+        assert table_inf.survey_date == "0"
         assert table_inf.overall_total_number == 1830033
+    
+    def test_table_inf_with_string_small_area(self):
+        """Test TableInf with string small_area field."""
+        data = {
+            "@id": "0000020201",
+            "STAT_NAME": {"@code": "00200502", "$": "社会・人口統計体系"},
+            "GOV_ORG": {"@code": "00200", "$": "総務省"},
+            "STATISTICS_NAME": "市区町村データ",
+            "TITLE": {"@no": "0000020201", "$": "Ａ　人口・世帯"},
+            "CYCLE": "年度次",
+            "SURVEY_DATE": "2024",
+            "OPEN_DATE": "2024-06-21",
+            "SMALL_AREA": "対象",
+            "COLLECT_AREA": "市区町村",
+            "MAIN_CATEGORY": {"@code": "99", "$": "その他"},
+            "SUB_CATEGORY": {"@code": "99", "$": "その他"},
+            "OVERALL_TOTAL_NUMBER": 1830033,
+            "UPDATED_DATE": "2024-06-21",
+            "STATISTICS_NAME_SPEC": {
+                "TABULATION_CATEGORY": "市区町村データ",
+                "TABULATION_SUB_CATEGORY1": "基礎データ"
+            },
+            "DESCRIPTION": {
+                "TABULATION_CATEGORY_EXPLANATION": "説明文"
+            },
+            "TITLE_SPEC": {
+                "TABLE_NAME": "Ａ　人口・世帯"
+            }
+        }
+        
+        table_inf = TableInf.model_validate(data)
+        assert table_inf.small_area == "対象"
+        assert table_inf.survey_date == "2024"
+    
+    def test_table_inf_with_string_description(self):
+        """Test TableInf with string description field."""
+        data = {
+            "@id": "0000020201",
+            "STAT_NAME": {"@code": "00200502", "$": "社会・人口統計体系"},
+            "GOV_ORG": {"@code": "00200", "$": "総務省"},
+            "STATISTICS_NAME": "市区町村データ",
+            "TITLE": {"@no": "0000020201", "$": "Ａ　人口・世帯"},
+            "CYCLE": "年度次",
+            "SURVEY_DATE": "0",
+            "OPEN_DATE": "2024-06-21",
+            "SMALL_AREA": 0,
+            "COLLECT_AREA": "市区町村",
+            "MAIN_CATEGORY": {"@code": "99", "$": "その他"},
+            "SUB_CATEGORY": {"@code": "99", "$": "その他"},
+            "OVERALL_TOTAL_NUMBER": 1830033,
+            "UPDATED_DATE": "2024-06-21",
+            "STATISTICS_NAME_SPEC": {
+                "TABULATION_CATEGORY": "市区町村データ",
+                "TABULATION_SUB_CATEGORY1": "基礎データ"
+            },
+            "DESCRIPTION": "シンプルな説明文",
+            "TITLE_SPEC": {
+                "TABLE_NAME": "Ａ　人口・世帯"
+            }
+        }
+        
+        table_inf = TableInf.model_validate(data)
+        assert table_inf.description == "シンプルな説明文"
+        assert isinstance(table_inf.description, str)
+    
+    def test_table_inf_with_int_survey_date(self):
+        """Test TableInf with integer survey_date field."""
+        data = {
+            "@id": "0000020201",
+            "STAT_NAME": {"@code": "00200502", "$": "社会・人口統計体系"},
+            "GOV_ORG": {"@code": "00200", "$": "総務省"},
+            "STATISTICS_NAME": "市区町村データ",
+            "TITLE": {"@no": "0000020201", "$": "Ａ　人口・世帯"},
+            "CYCLE": "年度次",
+            "SURVEY_DATE": 2024,  # Integer value
+            "OPEN_DATE": "2024-06-21",
+            "SMALL_AREA": 0,
+            "COLLECT_AREA": "市区町村",
+            "MAIN_CATEGORY": {"@code": "99", "$": "その他"},
+            "SUB_CATEGORY": {"@code": "99", "$": "その他"},
+            "OVERALL_TOTAL_NUMBER": 1830033,
+            "UPDATED_DATE": "2024-06-21",
+            "STATISTICS_NAME_SPEC": {
+                "TABULATION_CATEGORY": "市区町村データ",
+                "TABULATION_SUB_CATEGORY1": "基礎データ"
+            },
+            "DESCRIPTION": {
+                "TABULATION_CATEGORY_EXPLANATION": "説明文"
+            },
+            "TITLE_SPEC": {
+                "TABLE_NAME": "Ａ　人口・世帯"
+            }
+        }
+        
+        table_inf = TableInf.model_validate(data)
+        assert table_inf.survey_date == 2024
+        assert isinstance(table_inf.survey_date, int)
 
 
 class TestCodeValue:

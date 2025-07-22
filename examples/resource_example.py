@@ -14,7 +14,8 @@ def main():
         "source": {
             "app_id": os.getenv("ESTAT_API_KEY"),
             "statsDataId": ["0000020203", "0000020204"],  # Multiple stats IDs
-            "limit": 30,
+            "limit": 100,
+            "maximum_offset": 200,
         },
         "destination": {
             "destination": "duckdb",
@@ -51,29 +52,29 @@ def main():
     print("\nRunning pipeline with resource...")
     info = pipeline.run(resource)
 
-    print(f"\nLoad completed!")
+    print("\nLoad completed!")
     print(f"Tables created: {list(info.load_packages[0].schema_update.tables.keys())}")
 
     # Inspect the resource data generator
     print("\nInspecting resource data...")
-    
+
     # Create a new resource instance to inspect data
     inspect_resource = create_estat_resource(
         config=estat_config,
         name="inspect_resource",
     )
-    
+
     # Get first few records
     data_generator = inspect_resource()
     first_batch = next(data_generator)
-    
+
     print(f"First batch schema: {first_batch.schema}")
     print(f"First batch shape: {first_batch.shape}")
     print(f"Columns: {first_batch.column_names}")
-    
+
     # Convert to pandas for display
     df = first_batch.to_pandas()
-    print(f"\nSample data (first 3 rows):")
+    print("\nSample data (first 3 rows):")
     print(df.head(3))
 
 

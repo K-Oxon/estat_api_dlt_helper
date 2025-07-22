@@ -2,7 +2,11 @@
 
 import os
 
-from estat_api_dlt_helper import EstatDltConfig, create_estat_pipeline, create_estat_resource
+from estat_api_dlt_helper import (
+    EstatDltConfig,
+    create_estat_pipeline,
+    create_estat_resource,
+)
 
 
 def main():
@@ -51,13 +55,13 @@ def main():
     print(f"\nPipeline completed!")
     print(f"Pipeline name: {info.pipeline.pipeline_name}")
     print(f"Load packages: {len(info.load_packages)}")
-    
+
     # Check pipeline state
     print(f"\nPipeline state:")
     print(f"Working directory: {pipeline.working_dir}")
     print(f"Dataset name: {pipeline.dataset_name}")
     print(f"Destination: {pipeline.destination}")
-    
+
     # Show schema info
     schema = pipeline.default_schema
     print(f"\nSchema info:")

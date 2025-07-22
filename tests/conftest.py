@@ -38,7 +38,7 @@ def sample_response_data():
                         "$": "Ａ　人口・世帯"
                     },
                     "CYCLE": "年度次",
-                    "SURVEY_DATE": 0,
+                    "SURVEY_DATE": "0",
                     "OPEN_DATE": "2024-06-21",
                     "SMALL_AREA": 0,
                     "COLLECT_AREA": "市区町村",

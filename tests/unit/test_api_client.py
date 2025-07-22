@@ -9,11 +9,11 @@ class TestEstatApiClient:
 
     def test_init(self):
         """Test client initialization"""
-        client = EstatApiClient(app_id="test_app_id")
+        client = EstatApiClient(app_id="test_app_id", timeout=60)
 
         assert client.app_id == "test_app_id"
         assert client.base_url == ESTAT_ENDPOINTS["base_url"]
-        assert client.timeout == 30
+        assert client.timeout == 60
         assert client.session is not None
 
     def test_init_with_custom_params(self):

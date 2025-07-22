@@ -115,7 +115,7 @@ class TestParseResponse:
                         "STATISTICS_NAME": "Test",
                         "TITLE": {"@no": "001", "$": "Test"},
                         "CYCLE": "Test",
-                        "SURVEY_DATE": 0,
+                        "SURVEY_DATE": "0",
                         "OPEN_DATE": "2024-01-01",
                         "SMALL_AREA": 0,
                         "COLLECT_AREA": "Test",
