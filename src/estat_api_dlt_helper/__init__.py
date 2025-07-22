@@ -1,6 +1,6 @@
 """estat_api_dlt_helper - e-Stat API data loader using DLT."""
 
-__version__ = "0.1.0"
+__version__ = "0.1.1"
 
 from .api.client import EstatApiClient
 from .config import DestinationConfig, EstatDltConfig, SourceConfig
