@@ -94,14 +94,28 @@ class StatisticsNameSpec(BaseMetadataModel):
     """Model for statistics name specifications."""
 
     tabulation_category: str = Field(..., alias="TABULATION_CATEGORY")
-    tabulation_sub_category1: str = Field(..., alias="TABULATION_SUB_CATEGORY1")
+    tabulation_sub_category1: Optional[str] = Field(
+        None, alias="TABULATION_SUB_CATEGORY1"
+    )
+    tabulation_sub_category2: Optional[str] = Field(
+        None, alias="TABULATION_SUB_CATEGORY2"
+    )
+    tabulation_sub_category3: Optional[str] = Field(
+        None, alias="TABULATION_SUB_CATEGORY3"
+    )
+    tabulation_sub_category4: Optional[str] = Field(
+        None, alias="TABULATION_SUB_CATEGORY4"
+    )
+    tabulation_sub_category5: Optional[str] = Field(
+        None, alias="TABULATION_SUB_CATEGORY5"
+    )
 
 
 class Description(BaseMetadataModel):
     """Model for statistics description."""
 
-    tabulation_category_explanation: str = Field(
-        ..., alias="TABULATION_CATEGORY_EXPLANATION"
+    tabulation_category_explanation: Optional[str] = Field(
+        None, alias="TABULATION_CATEGORY_EXPLANATION"
     )
     tabulation_sub_category_explanation1: Optional[str] = Field(
         None, alias="TABULATION_SUB_CATEGORY_EXPLANATION1"
@@ -133,7 +147,7 @@ class TableInf(BaseMetadataModel):
     stat_name: CodeValue = Field(..., alias="STAT_NAME")
     gov_org: CodeValue = Field(..., alias="GOV_ORG")
     statistics_name: str = Field(..., alias="STATISTICS_NAME")
-    title: Title = Field(..., alias="TITLE")
+    title: Title | str = Field(..., alias="TITLE")
     cycle: str = Field(..., alias="CYCLE")
     survey_date: int | str = Field(..., alias="SURVEY_DATE")
     open_date: str = Field(..., alias="OPEN_DATE")
@@ -146,3 +160,16 @@ class TableInf(BaseMetadataModel):
     statistics_name_spec: StatisticsNameSpec = Field(..., alias="STATISTICS_NAME_SPEC")
     description: Description | str = Field(..., alias="DESCRIPTION")
     title_spec: TitleSpec = Field(..., alias="TITLE_SPEC")
+
+    @model_validator(mode="before")
+    @classmethod
+    def handle_description(cls, values: Dict[str, Any]) -> Dict[str, Any]:
+        """Handle DESCRIPTION field that can be either a dict or empty string."""
+        if isinstance(values, dict) and "DESCRIPTION" in values:
+            desc = values["DESCRIPTION"]
+            # If DESCRIPTION is an empty string, create an empty Description object
+            if desc == "":
+                values["DESCRIPTION"] = {}
+            # If DESCRIPTION is a dict but doesn't follow expected structure, keep it as is
+            # The Description model will handle missing fields with Optional
+        return values

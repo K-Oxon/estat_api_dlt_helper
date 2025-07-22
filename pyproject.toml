@@ -36,6 +36,7 @@ path = "src/estat_api_dlt_helper/__init__.py"
 [dependency-groups]
 dev = [
     "dlt[duckdb]>=1.13.0",
+    "duckdb>=1.0.0",
     "pandas>=2.3.1",
     "pyright>=1.1.403",
     "pytest>=8.4.1",
@@ -56,6 +57,9 @@ filesystem = ["dlt[filesystem]"]
 [tool.pytest.ini_options]
 pythonpath = ["src"]
 testpaths = ["tests"]
+markers = [
+    "integration: marks tests as integration tests (deselect with '-m \"not integration\"')",
+]
 
 [tool.pyright]
 include = ["src"]

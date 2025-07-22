@@ -118,7 +118,8 @@ config = {
     "source": {
         "app_id": os.getenv("ESTAT_API_KEY"), #(必須項目)
         "statsDataId": "0000020201",  # (必須項目) 人口推計
-        "limit": 100,  # (Optional) Small limit for demo
+        "limit": 100,  # (Optional) 1 requestで取得する行数 | デフォルト:10万
+        "maximum_offset": 200,  # (Optional) 最大取得行数
     },
     "destination": {
         "pipeline_name": "estat_demo",

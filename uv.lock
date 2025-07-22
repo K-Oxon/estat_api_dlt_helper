@@ -575,6 +575,7 @@ snowflake = [
 [package.dev-dependencies]
 dev = [
     { name = "dlt", extra = ["duckdb"] },
+    { name = "duckdb" },
     { name = "pandas" },
     { name = "pyright" },
     { name = "pytest" },
@@ -600,6 +601,7 @@ provides-extras = ["athena", "bigquery", "duckdb", "filesystem", "motherduck", "
 [package.metadata.requires-dev]
 dev = [
     { name = "dlt", extras = ["duckdb"], specifier = ">=1.13.0" },
+    { name = "duckdb", specifier = ">=1.0.0" },
     { name = "pandas", specifier = ">=2.3.1" },
     { name = "pyright", specifier = ">=1.1.403" },
     { name = "pytest", specifier = ">=8.4.1" },
