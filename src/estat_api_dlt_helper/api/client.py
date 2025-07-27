@@ -9,7 +9,17 @@ logger = get_logger(__name__)
 
 
 class EstatApiClient:
-    """e-Stat API クライアント"""
+    """Client for accessing e-Stat API.
+
+    Provides methods to fetch statistical data from Japan's e-Stat API.
+    Handles API authentication, request formatting, and response parsing.
+
+    Attributes:
+        app_id: e-Stat API application ID for authentication.
+        base_url: Base URL for API endpoints.
+        timeout: Request timeout in seconds.
+        session: HTTP session for connection pooling.
+    """
 
     def __init__(
         self,

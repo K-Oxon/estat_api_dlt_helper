@@ -1,0 +1,6 @@
+{
+    "rules": {
+        "@textlint-ja/preset-ai-writing": true,
+        "preset-bengo4": true
+    }
+}

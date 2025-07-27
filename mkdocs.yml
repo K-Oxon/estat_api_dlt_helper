@@ -1,0 +1,56 @@
+# サイトの基本情報
+site_name: "estat_api_dlt_helper"
+site_description: "e-Stat API からデータを取得し、dlt(data load tool)で簡単に各種DWHにデータをロードすることが可能"
+site_url: "https://k-oxon.github.io/estat_api_dlt_helper/"
+repo_url: "https://github.com/K-Oxon/estat_api_dlt_helper"
+repo_name: "K-Oxon/estat_api_dlt_helper"
+
+# テーマの設定
+theme:
+  language: ja
+  name: material
+  palette:
+    # ライトモード
+    - scheme: default
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    # ダークモード
+    - scheme: slate
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - content.code.copy
+
+nav:
+  - Home: index.md
+  - API Reference: api.md
+  - Examples:
+      - APIクライアントの基本的な使い方: examples/api_client_demo.md
+      - パーサーの基本的な使い方: examples/basic_parser_usage.md
+      - 基本的なデータロード（DuckDB）: examples/basic_load_example.md
+      - 基本的なデータロード（BigQuery）: examples/basic_load_example_bq.md
+      - パイプラインの個別利用: examples/pipeline_example.md
+      - リソースの個別利用: examples/resource_example.md
+
+exclude_docs: |
+  dev/**
+
+# プラグインの設定
+plugins:
+  - search
+  - mkdocstrings:
+      handlers:
+        python:
+          # src ディレクトリを検索パスに追加
+          paths: [src]
+  # - simple
+
+# Markdown拡張機能
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences

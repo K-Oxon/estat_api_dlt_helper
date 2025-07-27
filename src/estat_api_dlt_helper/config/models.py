@@ -6,7 +6,18 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 
 class SourceConfig(BaseModel):
-    """e-Stat API source configuration."""
+    """Configuration for e-Stat API data source.
+
+    Defines parameters for fetching statistical data from e-Stat API,
+    including authentication, data selection, and pagination options.
+
+    Attributes:
+        app_id: e-Stat API application ID for authentication.
+        statsDataId: Statistical table ID(s) to fetch.
+        lang: Language for API response (J: Japanese, E: English).
+        metaGetFlg: Whether to fetch metadata.
+        cntGetFlg: Whether to fetch only record count.
+    """
 
     app_id: str = Field(..., description="e-Stat API application ID (API key)")
     statsDataId: Union[str, List[str]] = Field(
@@ -77,7 +88,18 @@ class SourceConfig(BaseModel):
 
 
 class DestinationConfig(BaseModel):
-    """DLT destination configuration."""
+    """Configuration for DLT data destination.
+
+    Defines parameters for loading data to various destinations using DLT,
+    including destination type, dataset/table names, and write strategies.
+
+    Attributes:
+        destination: DLT destination type or configuration object.
+        dataset_name: Target dataset/schema name.
+        table_name: Target table name.
+        write_disposition: How to write data (append/replace/merge).
+        primary_key: Primary key columns for merge operations.
+    """
 
     destination: Union[str, Any] = Field(
         ...,
@@ -120,7 +142,18 @@ class DestinationConfig(BaseModel):
 
 
 class EstatDltConfig(BaseModel):
-    """Main configuration for e-Stat API to DLT integration."""
+    """Main configuration for e-Stat API to DLT integration.
+
+    Combines source and destination configurations with additional
+    processing options for data extraction and loading.
+
+    Attributes:
+        source: e-Stat API source configuration.
+        destination: DLT destination configuration.
+        batch_size: Number of records per batch.
+        max_retries: Maximum API retry attempts.
+        timeout: API request timeout in seconds.
+    """
 
     source: SourceConfig = Field(..., description="e-Stat API source configuration")
     destination: DestinationConfig = Field(

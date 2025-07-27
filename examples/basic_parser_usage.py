@@ -21,7 +21,7 @@ def main():
     # Note: Replace 'YOUR-API-KEY' with your actual e-Stat API key
     params = {
         "appId": os.getenv("ESTAT_API_KEY"),
-        "statsDataId": "0004028584",  # 市区町村データ 基礎データ
+        "statsDataId": "0000020201",  # 社会人口統計体系 市町村データ 人口・世帯データ
         # "cdCat01": "A2101",  # 住民基本台帳人口（日本人）
         # "cdArea": "01100,01101",  # 札幌市, 札幌市中央区
         "limit": 100,

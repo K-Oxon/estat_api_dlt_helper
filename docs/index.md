@@ -1,26 +1,24 @@
 # estat_api_dlt_helper
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
-
-[e-Stat API](https://www.e-stat.go.jp/api/)からデータを取得しロードするhelper
+政府統計 [e-Stat API](https://www.e-stat.go.jp/api/)からデータを取得しロードするヘルパーライブラリです。
 
 ## 概要
 
 e-Stat APIを利用してデータを取得し、DWHなどのデータ基盤にロードするシーンでの活用を想定しています。
 
-Pythonのライブラリとして動作し、以下の２つの機能を提供します。
+Pythonのライブラリとして動作し、以下の2つの機能を提供します。
 
 - `parse_response`
-  - APIのレスポンスをパースし、データとメタデータを結合させたArrow Tableを作成します。
+    - APIのレスポンスをパースし、データとメタデータを結合させたArrow Tableを作成します。
 - `load_estat_data`
-  - [dlt(data load tool)](https://dlthub.com/docs/intro)のラッパーとして動作し、
-    統計表IDとテーブル名などを設定するだけで、簡単にDWHなどにロード可能です。
-  - paginationや複数の統計表IDを同じテーブルにロードしたいケースなどを内部でいい感じに処理します。
+    - [dlt(data load tool)](https://dlthub.com/docs/intro)のラッパーとして動作し、
+      統計表IDとテーブル名などを設定するだけで、簡単にDWHなどにロード可能です。
+    - paginationや複数の統計表IDを同じテーブルにロードしたいケースなどを内部でいい感じに処理します。
 
 ## インストール
 
 ```bash
+# core library
 pip install estat_api_dlt_helper
 
 # BigQuery
@@ -51,15 +49,15 @@ $env:ESTAT_API_KEY = "YOUR_APP_ID"
 ### parse_responseの使い方
 
 e-Stat APIの`/rest/3.0/app/json/getStatsData`のレスポンスを`parse_response()`に渡すことで、
-responseの`TABLE_INF.VALUE`の中身をテーブルとして、`CLASS_INF.CLASS_OBJ`の中身をメタデータとして名寄せさせたArrow Tableを生成することができます。
+responseの`TABLE_INF.VALUE`の中身をテーブルとして、`CLASS_INF.CLASS_OBJ`の中身をメタデータとして名寄せさせたArrow Tableを生成できます。
 
 処理イメージ:
 
-| response                                  | 加工後                                   |
-| ----------------------------------------- | ---------------------------------------- |
-| ![response](docs/img/2024-11-18-json.jpg) | ![加工後](docs/img/2024-11-18-table.jpg) |
+| response                             | 加工後                              |
+| ------------------------------------ | ----------------------------------- |
+| ![response](img/2024-11-18-json.jpg) | ![加工後](img/2024-11-18-table.jpg) |
 
-see: [examples](examples/basic_parser_usage.py)
+see: [examples](https://github.com/K-Oxon/estat_api_dlt_helper/blob/main/examples/basic_parser_usage.py)
 
 ```python
 import os
@@ -74,7 +72,7 @@ url = "https://api.e-stat.go.jp/rest/3.0/app/json/getStatsData"
 # Parameters for the API request
 params = {
     "appId": os.getenv("ESTAT_API_KEY"),
-    "statsDataId": "0000020201",  # 社会人口統計 市区町村データ 基礎データ
+    "statsDataId": "0000020201",  # 社会人口統計体系 市町村データ 人口・世帯データ
     "cdCat01": "A2101",           # 住民基本台帳人口（日本人）
     "cdArea": "01100,01101",      # 札幌市, 札幌市中央区
     "limit": 10
@@ -102,7 +100,7 @@ DWH等にロードできます。
 
 ロード可能なDWHについては[dltのドキュメント](https://dlthub.com/docs/dlt-ecosystem/destinations/)を参考にしてください。
 
-see: [examples](examples/basic_load_example.py)
+see: [examples](https://github.com/K-Oxon/estat_api_dlt_helper/blob/main/examples/basic_load_example.py)
 
 ```python
 # duckdbの場合
@@ -117,7 +115,7 @@ db = duckdb.connect("estat_demo.duckdb")
 config = {
     "source": {
         "app_id": os.getenv("ESTAT_API_KEY"), #(必須項目)
-        "statsDataId": "0000020201",  # (必須項目) 人口推計
+        "statsDataId": "0000020201",  # (必須項目) 社会人口統計体系 市町村データ
         "limit": 100,  # (Optional) 1 requestで取得する行数 | デフォルト:10万
         "maximum_offset": 200,  # (Optional) 最大取得行数
     },
@@ -125,7 +123,7 @@ config = {
         "pipeline_name": "estat_demo",
         "destination": dlt.destinations.duckdb(db),
         "dataset_name": "estat_api_data",
-        "table_name": "population_estimates",
+        "table_name": "social_demographic_municipal",
         "write_disposition": "replace",  # Replace existing data
     },
 }
@@ -141,19 +139,6 @@ print(info)
 `load_estat_data()`は簡単な設定でロードを可能にしますが、dltの細かい設定や機能を使いこなしたい場合(`dlt.transform`や`bigquery_adapter`など)は、
 dltのresourceとpipelineをそれぞれ単体で生成し、既存のdltのコードと同じように扱うこともできます。
 
-see: [examples (resource)](examples/resource_example.py)
+see: [examples (resource)](https://github.com/K-Oxon/estat_api_dlt_helper/blob/main/examples/resource_example.py)
 
-see: [examples (pipeline)](examples/pipeline_example.py)
-
-## Development
-
-```bash
-# Install development dependencies
-uv sync
-
-# Run tests
-uv run pytest
-
-# Format code
-uv run ruff format src/
-```
+see: [examples (pipeline)](https://github.com/K-Oxon/estat_api_dlt_helper/blob/main/examples/pipeline_example.py)

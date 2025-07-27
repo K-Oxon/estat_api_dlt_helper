@@ -16,7 +16,7 @@ def main():
     config = {
         "source": {
             "app_id": os.getenv("ESTAT_API_KEY"),
-            "statsDataId": "0000020201",  # 人口推計
+            "statsDataId": "0000020201",  # 社会人口統計体系 市町村データ 人口・世帯データ
             "limit": 100,  # Small limit for demo
             "maximum_offset": 200,
         },
