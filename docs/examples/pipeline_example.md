@@ -1,3 +1,8 @@
+---
+title: パイプラインの個別利用
+description: create_estat_pipelineとcreate_estat_resourceを個別に使用してdltパイプラインをカスタマイズする高度な方法
+---
+
 # パイプラインの個別利用
 
 ## 概要

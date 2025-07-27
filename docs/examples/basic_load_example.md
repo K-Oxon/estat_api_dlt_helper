@@ -1,3 +1,8 @@
+---
+title: 基本的なデータロード（DuckDB）
+description: load_estat_data関数を使用してe-Stat APIからDuckDBへデータをロードする最もシンプルな方法の実例
+---
+
 # 基本的なデータロード（DuckDB）
 
 ## 概要

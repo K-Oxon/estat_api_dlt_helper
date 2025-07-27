@@ -1,3 +1,10 @@
+---
+title: estat_api_dlt_helper
+description: |
+  政府統計e-Stat APIからデータを取得しロードするヘルパーライブラリです。
+  APIのレスポンスのパーサーとdlt(data load tool)のラッパーによって構築されています。
+---
+
 # estat_api_dlt_helper
 
 政府統計 [e-Stat API](https://www.e-stat.go.jp/api/)からデータを取得しロードするヘルパーライブラリです。

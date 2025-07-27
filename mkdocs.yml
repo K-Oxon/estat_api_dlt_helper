@@ -1,6 +1,7 @@
 # サイトの基本情報
 site_name: "estat_api_dlt_helper"
-site_description: "e-Stat API からデータを取得し、dlt(data load tool)で簡単に各種DWHにデータをロードすることが可能"
+site_description: "e-Stat API からデータを取得し、dlt(data load tool)で簡単に各種DWHにデータをロードすることを可能にするライブラリ"
+site_author: "K-Oxon"
 site_url: "https://k-oxon.github.io/estat_api_dlt_helper/"
 repo_url: "https://github.com/K-Oxon/estat_api_dlt_helper"
 repo_name: "K-Oxon/estat_api_dlt_helper"

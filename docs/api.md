@@ -1,3 +1,8 @@
+---
+title: APIリファレンス
+description: estat_api_dlt_helperの設定クラス、APIクライアント、データ解析関数、ローダー関数のリファレンスドキュメント
+---
+
 # APIリファレンス
 
 ## メイン設定クラス

@@ -1,3 +1,8 @@
+---
+title: 基本的なデータロード（BigQuery）
+description: load_estat_data関数を使用してe-Stat APIからGoogle BigQueryへデータをロードする方法とクラウド環境での設定例
+---
+
 # 基本的なデータロード（BigQuery）
 
 ## 概要

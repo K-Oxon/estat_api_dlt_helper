@@ -1,3 +1,8 @@
+---
+title: パーサーの基本的な使い方
+description: parse_response関数を使用してe-Stat APIのレスポンスをApache Arrow形式に変換し、構造化されたデータを取得する方法
+---
+
 # パーサーの基本的な使い方
 
 ## 概要

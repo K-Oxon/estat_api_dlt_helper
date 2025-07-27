@@ -1,3 +1,8 @@
+---
+title: APIクライアントの基本的な使い方
+description: EstatApiClientを使用してe-Stat APIに直接アクセスし、レスポンスを確認する方法の実例
+---
+
 # APIクライアントの基本的な使い方
 
 ## 概要
