@@ -36,6 +36,7 @@ nav:
       - 基本的なデータロード（BigQuery）: examples/basic_load_example_bq.md
       - パイプラインの個別利用: examples/pipeline_example.md
       - リソースの個別利用: examples/resource_example.md
+      - e-Stat API全部対応スキーマ: examples/unified_schema_resource.md
 
 exclude_docs: |
   dev/**

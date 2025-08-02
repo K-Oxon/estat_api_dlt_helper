@@ -1,4 +1,40 @@
-"""DLT resource with unified schema for handling different metadata structures."""
+"""DLT resource with unified schema for handling different metadata structures.
+
+This module provides a solution to the "Schema at index X was different" error
+that occurs when loading multiple e-Stat API datasets with varying metadata
+structures into a single DLT pipeline.
+
+Background:
+    When fetching data from multiple statsDataIds, the e-Stat API may return
+    different metadata structures. For example, some datasets include a
+    'parent_code' field in their time_metadata, while others don't. This
+    causes PyArrow to fail when concatenating tables due to schema mismatches.
+
+Solution:
+    This module implements a unified schema approach using Pydantic models
+    that define the superset of all possible fields. Missing fields are
+    automatically set to None, ensuring consistent schema across all datasets.
+
+Key Features:
+    - Unified Pydantic models for all metadata types
+    - Automatic handling of missing fields
+    - Efficient PyArrow-native processing (no pandas dependency)
+    - Batch processing for optimal memory usage
+    - Support for unknown fields via extra_dimensions and extra_metadata
+
+Example:
+    >>> from estat_api_dlt_helper import EstatDltConfig
+    >>> from estat_api_dlt_helper.loader.unified_schema_resource import create_unified_estat_resource
+    >>> 
+    >>> config = EstatDltConfig(
+    ...     source={"statsDataId": ["0004028473", "0004028474", "0004028475"]},
+    ...     destination={"table_name": "unified_stats"}
+    ... )
+    >>> 
+    >>> # Use unified schema resource instead of regular resource
+    >>> resource = create_unified_estat_resource(config)
+    >>> pipeline.run(resource)  # No schema errors!
+"""
 
 from typing import Any, Callable, Dict, Generator, List, Optional
 
