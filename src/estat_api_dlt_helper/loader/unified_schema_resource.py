@@ -50,70 +50,99 @@ def _convert_to_unified_metadata(
 def _convert_arrow_to_unified_records(
     arrow_table: pa.Table,
 ) -> Generator[UnifiedEstatRecord, None, None]:
-    """Convert Arrow table to unified records."""
+    """Convert Arrow table to unified records using native PyArrow operations.
 
-    # Import pandas here to avoid global import issues
-    try:
-        import pandas as pd
-    except ImportError:
-        raise ImportError("pandas is required for unified schema conversion")
+    This optimized version avoids pandas conversion and uses efficient
+    batch processing for better performance with large datasets.
+    """
 
-    # Convert to pandas for easier processing
-    df = arrow_table.to_pandas()
+    # Pre-analyze column types once to avoid repeated checks
+    metadata_columns = {}
+    dimension_columns = []
+    known_columns = set(UnifiedEstatRecord.model_fields.keys())
+    extra_dimension_columns = []
 
-    for _, row in df.iterrows():
-        record_data = {}
-        extra_dimensions = {}
-        extra_metadata = {}
+    for col_name in arrow_table.column_names:
+        if col_name.endswith("_metadata"):
+            field_name = col_name.replace("_metadata", "")
+            metadata_columns[col_name] = field_name
+        elif col_name in known_columns:
+            dimension_columns.append(col_name)
+        elif col_name != "stat_inf" and not col_name.endswith("_metadata"):
+            extra_dimension_columns.append(col_name)
 
-        # Process each column
-        for col_name in df.columns:
-            value = row[col_name]
+    # Process in batches for better memory efficiency
+    batch_size = 1000
+    num_rows = len(arrow_table)
 
-            # Handle None/NaN values
-            if pd.isna(value):
-                value = None
+    for batch_start in range(0, num_rows, batch_size):
+        batch_end = min(batch_start + batch_size, num_rows)
+        batch_table = arrow_table.slice(batch_start, batch_end - batch_start)
 
-            if col_name == "stat_inf":
-                # Convert stat_inf to UnifiedStatInf
-                if value is not None:
-                    try:
-                        record_data["stat_inf"] = UnifiedStatInf(**value)
-                    except (ValidationError, TypeError) as e:
-                        logger.warning(f"Failed to convert stat_inf: {e}")
-                        continue
-            elif col_name.endswith("_metadata"):
-                # Handle metadata columns
-                field_name = col_name.replace("_metadata", "")
-                if value is not None and isinstance(value, dict):
-                    unified_metadata = _convert_to_unified_metadata(field_name, value)
-                    if unified_metadata is not None:
-                        record_data[col_name] = unified_metadata
+        # Convert batch to dictionaries using pyarrow (much faster than pandas)
+        batch_dicts = batch_table.to_pylist()
+
+        for row_dict in batch_dicts:
+            record_data = {}
+            extra_dimensions = {}
+            extra_metadata = {}
+
+            # Process known dimension columns efficiently
+            for col_name in dimension_columns:
+                if col_name in row_dict and row_dict[col_name] is not None:
+                    record_data[col_name] = row_dict[col_name]
+
+            # Process stat_inf if present
+            if "stat_inf" in row_dict and row_dict["stat_inf"] is not None:
+                try:
+                    record_data["stat_inf"] = UnifiedStatInf(**row_dict["stat_inf"])
+                except (ValidationError, TypeError) as e:
+                    logger.warning(f"Failed to convert stat_inf: {e}")
+                    continue
+
+            # Process metadata columns
+            for col_name, field_name in metadata_columns.items():
+                if col_name in row_dict and row_dict[col_name] is not None:
+                    metadata_value = row_dict[col_name]
+                    if isinstance(metadata_value, dict):
+                        unified_metadata = _convert_to_unified_metadata(
+                            field_name, metadata_value
+                        )
+                        if unified_metadata is not None:
+                            record_data[col_name] = unified_metadata
+                        else:
+                            extra_metadata[col_name] = metadata_value
                     else:
-                        extra_metadata[col_name] = value
-                else:
-                    extra_metadata[col_name] = value
-            elif col_name in UnifiedEstatRecord.model_fields:
-                # Handle known fields
-                record_data[col_name] = value
-            else:
-                # Handle unknown dimension columns
-                if not col_name.endswith("_metadata"):
-                    extra_dimensions[col_name] = value
-                else:
+                        extra_metadata[col_name] = metadata_value
+
+            # Collect extra dimensions efficiently
+            for col_name in extra_dimension_columns:
+                if col_name in row_dict and row_dict[col_name] is not None:
+                    extra_dimensions[col_name] = row_dict[col_name]
+
+            # Process any remaining unknown metadata columns
+            for col_name, value in row_dict.items():
+                if (
+                    col_name not in dimension_columns
+                    and col_name not in metadata_columns
+                    and col_name not in extra_dimension_columns
+                    and col_name != "stat_inf"
+                    and col_name.endswith("_metadata")
+                    and value is not None
+                ):
                     extra_metadata[col_name] = value
 
-        # Add extra fields if any
-        if extra_dimensions:
-            record_data["extra_dimensions"] = extra_dimensions
-        if extra_metadata:
-            record_data["extra_metadata"] = extra_metadata
+            # Add extra fields if any
+            if extra_dimensions:
+                record_data["extra_dimensions"] = extra_dimensions
+            if extra_metadata:
+                record_data["extra_metadata"] = extra_metadata
 
-        try:
-            yield UnifiedEstatRecord(**record_data)
-        except ValidationError as e:
-            logger.warning(f"Failed to create unified record: {e}")
-            continue
+            try:
+                yield UnifiedEstatRecord(**record_data)
+            except ValidationError as e:
+                logger.warning(f"Failed to create unified record: {e}")
+                continue
 
 
 def _fetch_unified_estat_data(
@@ -181,7 +210,6 @@ def create_unified_estat_resource(
     This resource uses a unified Pydantic schema that can handle all possible
     metadata structures, preventing schema mismatch errors.
     """
-    # pandas will be imported locally in the conversion function
 
     # Prepare API parameters
     from ..loader.dlt_resource import _create_api_params
