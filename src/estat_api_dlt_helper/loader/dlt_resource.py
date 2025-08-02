@@ -1,6 +1,6 @@
 """DLT resource creation for e-Stat API data."""
 
-from typing import Any, Callable, Dict, Generator, List, Optional
+from typing import Any, Callable, Dict, Generator, Optional
 
 import dlt
 import pyarrow as pa

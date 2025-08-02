@@ -36,7 +36,7 @@ Example:
     >>> pipeline.run(resource)  # No schema errors!
 """
 
-from typing import Any, Callable, Dict, Generator, List, Optional
+from typing import Any, Callable, Dict, Generator, Optional
 
 import dlt
 import pyarrow as pa
@@ -44,7 +44,6 @@ from pydantic import ValidationError
 
 from ..api.client import EstatApiClient
 from ..config.models import EstatDltConfig
-from ..models import ClassInfModel, TableInf
 from ..models.unified_schema import (
     UnifiedAreaMetadata,
     UnifiedCategoryMetadata,
@@ -53,7 +52,6 @@ from ..models.unified_schema import (
     UnifiedTabMetadata,
     UnifiedTimeMetadata,
 )
-from ..utils import create_arrow_struct_type, model_to_arrow_dict
 from ..utils.logging import get_logger
 
 logger = get_logger(__name__)
