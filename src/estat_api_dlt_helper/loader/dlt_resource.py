@@ -1,6 +1,6 @@
 """DLT resource creation for e-Stat API data."""
 
-from typing import Any, Callable, Dict, Generator, Optional
+from typing import Any, Callable, Dict, Generator, List, Optional
 
 import dlt
 import pyarrow as pa
@@ -162,6 +162,13 @@ def create_estat_resource(
     resource_config: Dict[str, Any] = {
         "name": name or config.destination.table_name,
         "write_disposition": write_disposition or config.destination.write_disposition,
+        # Allow schema evolution for handling different metadata structures
+        "schema_contract": schema_contract
+        or {
+            "tables": "evolve",
+            "columns": "evolve",  # Allow new columns like parent_code in time_metadata
+            "data_type": "freeze",  # Keep data types consistent
+        },
     }
 
     # Add primary key for merge disposition
