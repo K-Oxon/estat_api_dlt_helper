@@ -25,17 +25,18 @@ Key Features:
 Example:
     >>> from estat_api_dlt_helper import EstatDltConfig
     >>> from estat_api_dlt_helper.loader.unified_schema_resource import create_unified_estat_resource
-    >>> 
+    >>>
     >>> config = EstatDltConfig(
     ...     source={"statsDataId": ["0004028473", "0004028474", "0004028475"]},
     ...     destination={"table_name": "unified_stats"}
     ... )
-    >>> 
+    >>>
     >>> # Use unified schema resource instead of regular resource
     >>> resource = create_unified_estat_resource(config)
     >>> pipeline.run(resource)  # No schema errors!
 """
 
+from collections import OrderedDict
 from typing import Any, Callable, Dict, Generator, Optional
 
 import dlt
@@ -83,20 +84,25 @@ def _convert_to_unified_metadata(
 
 def _convert_arrow_to_unified_records(
     arrow_table: pa.Table,
-) -> Generator[UnifiedEstatRecord, None, None]:
+) -> Generator[Dict[str, Any], None, None]:
     """Convert Arrow table to unified records using native PyArrow operations.
 
     This optimized version avoids pandas conversion and uses efficient
     batch processing for better performance with large datasets.
+    Returns dictionaries with preserved column order.
     """
 
     # Pre-analyze column types once to avoid repeated checks
+    # IMPORTANT: Preserve the original column order from arrow_table
     metadata_columns = {}
     dimension_columns = []
     known_columns = set(UnifiedEstatRecord.model_fields.keys())
     extra_dimension_columns = []
 
-    for col_name in arrow_table.column_names:
+    # Store original column order for preserving sequence
+    original_column_order = list(arrow_table.column_names)
+
+    for col_name in original_column_order:  # Use original order
         if col_name.endswith("_metadata"):
             field_name = col_name.replace("_metadata", "")
             metadata_columns[col_name] = field_name
@@ -117,54 +123,41 @@ def _convert_arrow_to_unified_records(
         batch_dicts = batch_table.to_pylist()
 
         for row_dict in batch_dicts:
-            record_data = {}
-            extra_dimensions = {}
-            extra_metadata = {}
+            # Use OrderedDict to preserve column order
+            record_data = OrderedDict()
+            extra_dimensions = OrderedDict()
+            extra_metadata = OrderedDict()
 
-            # Process known dimension columns efficiently
-            for col_name in dimension_columns:
-                if col_name in row_dict and row_dict[col_name] is not None:
-                    record_data[col_name] = row_dict[col_name]
-
-            # Process stat_inf if present
-            if "stat_inf" in row_dict and row_dict["stat_inf"] is not None:
-                try:
-                    record_data["stat_inf"] = UnifiedStatInf(**row_dict["stat_inf"])
-                except (ValidationError, TypeError) as e:
-                    logger.warning(f"Failed to convert stat_inf: {e}")
+            # Process columns in their original order
+            for col_name in original_column_order:
+                if col_name not in row_dict or row_dict[col_name] is None:
                     continue
 
-            # Process metadata columns
-            for col_name, field_name in metadata_columns.items():
-                if col_name in row_dict and row_dict[col_name] is not None:
-                    metadata_value = row_dict[col_name]
-                    if isinstance(metadata_value, dict):
+                value = row_dict[col_name]
+
+                # Handle different column types
+                if col_name == "stat_inf":
+                    try:
+                        record_data[col_name] = UnifiedStatInf(**value)
+                    except (ValidationError, TypeError) as e:
+                        logger.warning(f"Failed to convert stat_inf: {e}")
+                        continue
+                elif col_name.endswith("_metadata"):
+                    field_name = metadata_columns.get(col_name)
+                    if isinstance(value, dict) and field_name:
                         unified_metadata = _convert_to_unified_metadata(
-                            field_name, metadata_value
+                            field_name, value
                         )
                         if unified_metadata is not None:
                             record_data[col_name] = unified_metadata
                         else:
-                            extra_metadata[col_name] = metadata_value
+                            extra_metadata[col_name] = value
                     else:
-                        extra_metadata[col_name] = metadata_value
-
-            # Collect extra dimensions efficiently
-            for col_name in extra_dimension_columns:
-                if col_name in row_dict and row_dict[col_name] is not None:
-                    extra_dimensions[col_name] = row_dict[col_name]
-
-            # Process any remaining unknown metadata columns
-            for col_name, value in row_dict.items():
-                if (
-                    col_name not in dimension_columns
-                    and col_name not in metadata_columns
-                    and col_name not in extra_dimension_columns
-                    and col_name != "stat_inf"
-                    and col_name.endswith("_metadata")
-                    and value is not None
-                ):
-                    extra_metadata[col_name] = value
+                        extra_metadata[col_name] = value
+                elif col_name in known_columns:
+                    record_data[col_name] = value
+                else:
+                    extra_dimensions[col_name] = value
 
             # Add extra fields if any
             if extra_dimensions:
@@ -173,7 +166,9 @@ def _convert_arrow_to_unified_records(
                 record_data["extra_metadata"] = extra_metadata
 
             try:
-                yield UnifiedEstatRecord(**record_data)
+                # Validate with UnifiedEstatRecord but yield the ordered dict
+                UnifiedEstatRecord(**record_data)  # Validate only
+                yield dict(record_data)  # Convert OrderedDict to dict for DLT
             except ValidationError as e:
                 logger.warning(f"Failed to create unified record: {e}")
                 continue
@@ -185,7 +180,7 @@ def _fetch_unified_estat_data(
     params: Dict[str, Any],
     limit: int = 100000,
     maximum_offset: Optional[int] = None,
-) -> Generator[UnifiedEstatRecord, None, None]:
+) -> Generator[Dict[str, Any], None, None]:
     """Fetch data from e-Stat API and convert to unified records."""
     logger.info(f"Fetching unified data for stats_data_id: {stats_data_id}")
 
@@ -241,8 +236,68 @@ def create_unified_estat_resource(
     """
     Create a DLT resource for e-Stat API data using unified schema.
 
-    This resource uses a unified Pydantic schema that can handle all possible
-    metadata structures, preventing schema mismatch errors.
+    This function creates a DLT resource that handles multiple e-Stat datasets
+    with varying metadata structures by using a unified schema approach. This
+    prevents PyArrow "Schema at index X was different" errors when loading
+    multiple statsDataIds.
+
+    The unified schema includes all possible fields from all datasets, with
+    missing fields automatically set to None. Column order from the original
+    data is preserved.
+
+    Args:
+        config: Configuration for e-Stat API source and destination
+        name: Resource name (defaults to table_name from config)
+        primary_key: Primary key columns (overrides config if provided)
+        write_disposition: Write disposition (overrides config if provided)
+        columns: Column definitions for the resource
+        table_format: Table format for certain destinations
+        file_format: File format for filesystem destinations
+        schema_contract: Schema contract settings (defaults to evolve mode)
+        table_name: Callable to generate dynamic table names
+        max_table_nesting: Maximum nesting level for nested data
+        selected: Whether this resource is selected for loading
+        merge_key: Merge key for merge operations
+        parallelized: Whether to parallelize this resource
+        **resource_kwargs: Additional keyword arguments for dlt.resource
+
+    Returns:
+        dlt.Resource: Configured DLT resource with unified schema support
+
+    Example:
+        ```python
+        from estat_api_dlt_helper import EstatDltConfig
+        from estat_api_dlt_helper.loader.unified_schema_resource import create_unified_estat_resource
+
+        # Configuration with multiple statsDataIds that have different schemas
+        config = EstatDltConfig(
+            source={
+                "statsDataId": ["0004028473", "0004028474", "0004028475"],
+                "app_id": "YOUR_APP_ID"
+            },
+            destination={
+                "table_name": "unified_stats",
+                "dataset_name": "estat_data"
+            }
+        )
+
+        # Create resource with unified schema
+        resource = create_unified_estat_resource(config)
+
+        # Run in pipeline without schema errors
+        import dlt
+        pipeline = dlt.pipeline(
+            pipeline_name="estat_unified",
+            destination="duckdb",
+            dataset_name="estat_data"
+        )
+        pipeline.run(resource)
+        ```
+
+    Note:
+        This resource is recommended when loading multiple statsDataIds that
+        may have different metadata structures (e.g., some have parent_code
+        in time_metadata while others don't).
     """
 
     # Prepare API parameters
@@ -299,7 +354,7 @@ def create_unified_estat_resource(
     resource_config.update(resource_kwargs)
 
     @dlt.resource(**resource_config)
-    def unified_estat_data() -> Generator[UnifiedEstatRecord, None, None]:
+    def unified_estat_data() -> Generator[Dict[str, Any], None, None]:
         """Generator function for unified e-Stat data."""
         client = EstatApiClient(app_id=config.source.app_id)
 
