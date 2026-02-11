@@ -206,7 +206,10 @@ def create_estat_resource(
     @dlt.resource(**resource_config)  # type: ignore
     def estat_data() -> Generator[pa.Table, None, None]:
         """Generator function for e-Stat data."""
-        client = EstatApiClient(app_id=config.source.app_id)
+        client_kwargs: Dict[str, Any] = {"app_id": config.source.app_id}
+        if config.timeout is not None:
+            client_kwargs["timeout"] = config.timeout
+        client = EstatApiClient(**client_kwargs)
 
         try:
             # Process each stats data ID
