@@ -356,7 +356,10 @@ def create_unified_estat_resource(
     @dlt.resource(**resource_config)
     def unified_estat_data() -> Generator[Dict[str, Any], None, None]:
         """Generator function for unified e-Stat data."""
-        client = EstatApiClient(app_id=config.source.app_id)
+        client_kwargs: Dict[str, Any] = {"app_id": config.source.app_id}
+        if config.timeout is not None:
+            client_kwargs["timeout"] = config.timeout
+        client = EstatApiClient(**client_kwargs)
 
         try:
             logger.info(
