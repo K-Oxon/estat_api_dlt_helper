@@ -1,6 +1,7 @@
 from typing import Any, Dict, Generator, Optional
 
-import requests
+from dlt.sources.helpers.requests.retry import Client
+from requests import Response
 
 from ..utils.logging import get_logger
 from .endpoints import ESTAT_ENDPOINTS
@@ -13,12 +14,14 @@ class EstatApiClient:
 
     Provides methods to fetch statistical data from Japan's e-Stat API.
     Handles API authentication, request formatting, and response parsing.
+    Uses dlt's requests Client for automatic retry, rate limiting, and
+    connection pooling.
 
     Attributes:
         app_id: e-Stat API application ID for authentication.
         base_url: Base URL for API endpoints.
         timeout: Request timeout in seconds.
-        session: HTTP session for connection pooling.
+        client: HTTP client with retry and connection pooling.
     """
 
     def __init__(
@@ -37,12 +40,12 @@ class EstatApiClient:
         self.app_id = app_id
         self.base_url = base_url or ESTAT_ENDPOINTS["base_url"]
         self.timeout = timeout
-        self.session = requests.Session()
-        self.session.headers.update({"accept": "application/json"})
+        self.client = Client(request_timeout=timeout)
+        self.default_headers = {"accept": "application/json"}
 
     def _make_request(
         self, endpoint: str, params: Dict[str, Any], **kwargs: Any
-    ) -> requests.Response:
+    ) -> Response:
         """Make HTTP request to e-Stat API.
 
         Args:
@@ -60,9 +63,10 @@ class EstatApiClient:
 
         logger.debug(f"Making request to {url} with params: {params}")
 
-        response = self.session.get(url, params=params, timeout=self.timeout, **kwargs)
+        response = self.client.get(
+            url, params=params, headers=self.default_headers, **kwargs
+        )
 
-        response.raise_for_status()
         return response
 
     def get_stats_data(
@@ -190,5 +194,5 @@ class EstatApiClient:
         return response.json()
 
     def close(self) -> None:
-        """Close the session."""
-        self.session.close()
+        """Close the underlying HTTP session."""
+        self.client.session.close()

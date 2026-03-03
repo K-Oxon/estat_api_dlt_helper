@@ -1,11 +1,20 @@
 from unittest.mock import Mock, patch
 
+import pytest
+
 from estat_api_dlt_helper.api.client import EstatApiClient
 from estat_api_dlt_helper.api.endpoints import ESTAT_ENDPOINTS
 
 
 class TestEstatApiClient:
     """Test cases for EstatApiClient"""
+
+    @pytest.fixture(autouse=True)
+    def mock_client(self):
+        with patch("estat_api_dlt_helper.api.client.Client") as mock_cls:
+            self.mock_client_cls = mock_cls
+            self.mock_client = mock_cls.return_value
+            yield
 
     def test_init(self):
         """Test client initialization"""
@@ -14,7 +23,8 @@ class TestEstatApiClient:
         assert client.app_id == "test_app_id"
         assert client.base_url == ESTAT_ENDPOINTS["base_url"]
         assert client.timeout == 60
-        assert client.session is not None
+        assert client.client is not None
+        self.mock_client_cls.assert_called_once_with(request_timeout=60)
 
     def test_init_with_custom_params(self):
         """Test client initialization with custom parameters"""
@@ -28,26 +38,23 @@ class TestEstatApiClient:
         assert client.base_url == custom_url
         assert client.timeout == custom_timeout
 
-    @patch("requests.Session.get")
-    def test_make_request_success(self, mock_get):
+    def test_make_request_success(self):
         """Test successful API request"""
         mock_response = Mock()
-        mock_response.raise_for_status.return_value = None
-        mock_get.return_value = mock_response
+        self.mock_client.get.return_value = mock_response
 
         client = EstatApiClient(app_id="test_app_id")
         response = client._make_request("test_endpoint", {"param1": "value1"})
 
         assert response == mock_response
-        mock_get.assert_called_once()
+        self.mock_client.get.assert_called_once()
 
         # Check that appId was added to params
-        call_args = mock_get.call_args
+        call_args = self.mock_client.get.call_args
         assert call_args[1]["params"]["appId"] == "test_app_id"
         assert call_args[1]["params"]["param1"] == "value1"
 
-    @patch("requests.Session.get")
-    def test_get_stats_data_success(self, mock_get):
+    def test_get_stats_data_success(self):
         """Test successful statistics data retrieval"""
         # Mock response data
         mock_response_data = {
@@ -75,30 +82,27 @@ class TestEstatApiClient:
 
         mock_response = Mock()
         mock_response.json.return_value = mock_response_data
-        mock_response.raise_for_status.return_value = None
-        mock_get.return_value = mock_response
+        self.mock_client.get.return_value = mock_response
 
         client = EstatApiClient(app_id="test_app_id")
         result = client.get_stats_data(stats_data_id="0000020202")
 
         assert result == mock_response_data
-        mock_get.assert_called_once()
+        self.mock_client.get.assert_called_once()
 
         # Verify default parameters
-        call_args = mock_get.call_args
+        call_args = self.mock_client.get.call_args
         params = call_args[1]["params"]
         assert params["statsDataId"] == "0000020202"
         assert params["startPosition"] == 1
         assert params["limit"] == 100000
         assert params["metaGetFlg"] == "Y"
 
-    @patch("requests.Session.get")
-    def test_get_stats_data_with_custom_params(self, mock_get):
+    def test_get_stats_data_with_custom_params(self):
         """Test statistics data retrieval with custom parameters"""
         mock_response = Mock()
         mock_response.json.return_value = {"test": "data"}
-        mock_response.raise_for_status.return_value = None
-        mock_get.return_value = mock_response
+        self.mock_client.get.return_value = mock_response
 
         client = EstatApiClient(app_id="test_app_id")
         client.get_stats_data(
@@ -109,15 +113,14 @@ class TestEstatApiClient:
             cdCat01="001",  # additional parameter
         )
 
-        call_args = mock_get.call_args
+        call_args = self.mock_client.get.call_args
         params = call_args[1]["params"]
         assert params["startPosition"] == 10
         assert params["limit"] == 1000
         assert params["metaGetFlg"] == "N"
         assert params["cdCat01"] == "001"
 
-    @patch("requests.Session.get")
-    def test_get_stats_data_generator(self, mock_get):
+    def test_get_stats_data_generator(self):
         """Test statistics data generator for pagination"""
         # Mock first page response
         first_response_data = {
@@ -147,13 +150,11 @@ class TestEstatApiClient:
 
         mock_response1 = Mock()
         mock_response1.json.return_value = first_response_data
-        mock_response1.raise_for_status.return_value = None
 
         mock_response2 = Mock()
         mock_response2.json.return_value = second_response_data
-        mock_response2.raise_for_status.return_value = None
 
-        mock_get.side_effect = [mock_response1, mock_response2]
+        self.mock_client.get.side_effect = [mock_response1, mock_response2]
 
         client = EstatApiClient(app_id="test_app_id")
         pages = list(
@@ -165,10 +166,9 @@ class TestEstatApiClient:
         assert len(pages) == 2
         assert pages[0] == first_response_data
         assert pages[1] == second_response_data
-        assert mock_get.call_count == 2
+        assert self.mock_client.get.call_count == 2
 
-    @patch("requests.Session.get")
-    def test_get_stats_list(self, mock_get):
+    def test_get_stats_list(self):
         """Test statistics list retrieval"""
         mock_response_data = {
             "GET_STATS_LIST": {
@@ -182,32 +182,30 @@ class TestEstatApiClient:
 
         mock_response = Mock()
         mock_response.json.return_value = mock_response_data
-        mock_response.raise_for_status.return_value = None
-        mock_get.return_value = mock_response
+        self.mock_client.get.return_value = mock_response
 
         client = EstatApiClient(app_id="test_app_id")
         result = client.get_stats_list(search_word="人口")
 
         assert result == mock_response_data
 
-        call_args = mock_get.call_args
+        call_args = self.mock_client.get.call_args
         params = call_args[1]["params"]
         assert params["searchWord"] == "人口"
 
     def test_close(self):
         """Test session closing"""
-        client = EstatApiClient(app_id="test_app_id")
+        mock_session = Mock()
+        self.mock_client.session = mock_session
 
-        with patch.object(client.session, "close") as mock_close:
-            client.close()
-            mock_close.assert_called_once()
+        client = EstatApiClient(app_id="test_app_id")
+        client.close()
+        mock_session.close.assert_called_once()
 
 
 def test_api_client_integration():
     """Integration test with sample parameters (requires actual API key)"""
     import os
-
-    import pytest
 
     api_key = os.getenv("ESTAT_API_KEY")
     if not api_key:
