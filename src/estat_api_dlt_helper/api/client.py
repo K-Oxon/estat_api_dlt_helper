@@ -208,6 +208,8 @@ class EstatApiClient:
             limit=1,
             meta_get_flg="Y",
             cnt_get_flg="N",
+            explanation_get_flg="N",
+            annotation_get_flg="N",
         )
         table_inf_data = (
             response.get("GET_STATS_DATA", {})

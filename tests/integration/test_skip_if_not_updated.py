@@ -1,7 +1,5 @@
 """Integration tests for skip_if_not_updated feature."""
 
-import os
-import shutil
 import uuid
 
 import dlt
@@ -19,27 +17,17 @@ from .helpers import APP_ID, skip_if_no_api_key
 
 skip_if_no_api_key()
 
-PIPELINES_DIR = os.path.join(
-    os.path.expanduser("~"), ".local", "share", "dlt", "pipelines"
-)
-
 
 @pytest.mark.integration
 class TestSkipIfNotUpdated:
     """Integration tests for skip_if_not_updated with real e-Stat API."""
 
-    def setup_method(self):
-        # dlt caches source state per pipeline name within the process.
-        # Use a unique name to avoid interference from previous test runs.
-        self.pipeline_name = f"test_skip_{uuid.uuid4().hex[:8]}"
-        self.pipeline_dir = os.path.join(PIPELINES_DIR, self.pipeline_name)
-
-    def teardown_method(self):
-        if os.path.exists(self.pipeline_dir):
-            shutil.rmtree(self.pipeline_dir)
-
-    def test_skip_on_second_run(self):
+    def test_skip_on_second_run(self, tmp_path):
         """Data fetch is skipped on second run when UPDATED_DATE is unchanged."""
+        # Use a unique pipeline name to avoid interference from previous test runs.
+        pipeline_name = f"test_skip_{uuid.uuid4().hex[:8]}"
+        pipelines_dir = str(tmp_path)
+
         config = EstatDltConfig(
             source=SourceConfig(
                 app_id=APP_ID,
@@ -54,17 +42,18 @@ class TestSkipIfNotUpdated:
                 table_name="test_table",
                 write_disposition="replace",
                 primary_key=None,
-                pipeline_name=self.pipeline_name,
+                pipeline_name=pipeline_name,
             ),
         )
 
         # Run 1: data is fetched
-        pipeline1 = create_estat_pipeline(config)
+        pipeline1 = create_estat_pipeline(config, pipelines_dir=pipelines_dir)
         info1 = pipeline1.run(create_estat_resource(config))
 
         # UPDATED_DATE should be stored in source state
         state = dlt.pipeline(
-            pipeline_name=self.pipeline_name,
+            pipeline_name=pipeline_name,
+            pipelines_dir=pipelines_dir,
             destination="duckdb",
             dataset_name="test_skip",
         ).state
@@ -76,7 +65,7 @@ class TestSkipIfNotUpdated:
         assert has_updated_dates, "updated_dates not found in source_state"
 
         # Run 2: skipped (only empty load packages)
-        pipeline2 = create_estat_pipeline(config)
+        pipeline2 = create_estat_pipeline(config, pipelines_dir=pipelines_dir)
         info2 = pipeline2.run(create_estat_resource(config))
 
         # Run 1 should contain data files, Run 2 should not

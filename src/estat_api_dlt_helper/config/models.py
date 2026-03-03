@@ -71,7 +71,7 @@ class SourceConfig(BaseModel):
     skip_if_not_updated: bool = Field(
         False,
         description="Skip data fetch if UPDATED_DATE has not changed since last load. "
-        "Uses dlt resource state to track UPDATED_DATE per statsDataId.",
+        "Uses dlt source state to track UPDATED_DATE per statsDataId.",
     )
 
     # 分類事項パラメータ（cat01-cat15）
