@@ -1,6 +1,5 @@
 """Integration tests for parse_response with multiple statistical table IDs."""
 
-import os
 import re
 from typing import List
 
@@ -9,6 +8,8 @@ import pyarrow as pa
 import pytest
 
 from estat_api_dlt_helper import EstatApiClient, parse_response
+
+from .helpers import APP_ID, skip_if_no_api_key
 
 # List of fixed statistical table IDs that we know work well
 # These are used for consistent testing across runs
@@ -60,18 +61,7 @@ def get_random_stat_ids(count: int = 20) -> List[str]:
         return []
 
 
-# Get API key from environment and check skip conditions
-APP_ID = os.getenv("ESTAT_API_KEY")
-SKIP_INTEGRATION = os.getenv("SKIP_INTEGRATION_TESTS", "").lower() == "true"
-
-if not APP_ID or SKIP_INTEGRATION:
-    skip_reason = []
-    if not APP_ID:
-        skip_reason.append("ESTAT_API_KEY environment variable not set")
-    if SKIP_INTEGRATION:
-        skip_reason.append("SKIP_INTEGRATION_TESTS is set to true")
-    
-    pytest.skip(" and ".join(skip_reason), allow_module_level=True)
+skip_if_no_api_key()
 
 # Combine fixed IDs with random IDs from parquet
 RANDOM_STAT_IDS = get_random_stat_ids(15)  # Get 15 random IDs
