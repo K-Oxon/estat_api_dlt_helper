@@ -214,6 +214,21 @@ def create_estat_resource(
         try:
             # Process each stats data ID
             for stats_data_id in stats_data_ids:
+                # Check UPDATED_DATE
+                current_date = (
+                    client.get_updated_date(stats_data_id)
+                    if config.source.skip_if_not_updated
+                    else None
+                )
+                previous_updated_dates = dlt.current.source_state().get("updated_dates", {})
+                if current_date and previous_updated_dates.get(stats_data_id) == current_date:
+                    logger.info(
+                        f"Skipping {stats_data_id}: "
+                        f"UPDATED_DATE unchanged ({current_date})"
+                    )
+                    continue
+
+                # Fetch data
                 yield from _fetch_estat_data(
                     client=client,
                     stats_data_id=stats_data_id,
@@ -221,6 +236,10 @@ def create_estat_resource(
                     limit=config.source.limit,
                     maximum_offset=config.source.maximum_offset,
                 )
+
+                # Store UPDATED_DATE
+                if current_date:
+                    dlt.current.source_state().setdefault("updated_dates", {})[stats_data_id] = current_date
         finally:
             client.close()
 
