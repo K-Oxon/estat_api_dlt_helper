@@ -2,6 +2,7 @@ from typing import Any, Dict, Generator, Optional
 
 import requests
 
+from ..models.estat_models import TableInf
 from ..utils.logging import get_logger
 from .endpoints import ESTAT_ENDPOINTS
 
@@ -188,6 +189,41 @@ class EstatApiClient:
 
         response = self._make_request(ESTAT_ENDPOINTS["stats_list"], params)
         return response.json()
+
+    def get_updated_date(self, stats_data_id: str) -> Optional[str]:
+        """Get the UPDATED_DATE for a statistical table (lightweight, limit=1).
+
+        Makes a minimal API request to retrieve only the table metadata,
+        which includes the UPDATED_DATE field indicating when the data
+        was last updated.
+
+        Args:
+            stats_data_id: Statistical data ID
+
+        Returns:
+            UPDATED_DATE string if available, None otherwise
+        """
+        response = self.get_stats_data(
+            stats_data_id=stats_data_id,
+            limit=1,
+            meta_get_flg="Y",
+            cnt_get_flg="N",
+        )
+        table_inf_data = (
+            response.get("GET_STATS_DATA", {})
+            .get("STATISTICAL_DATA", {})
+            .get("TABLE_INF")
+        )
+        # TABLE_INF may be returned as a list
+        if isinstance(table_inf_data, list):
+            if not table_inf_data:
+                return None
+            table_inf_data = table_inf_data[0]
+        if table_inf_data is None:
+            return None
+
+        table_inf = TableInf(**table_inf_data)
+        return table_inf.updated_date
 
     def close(self) -> None:
         """Close the session."""

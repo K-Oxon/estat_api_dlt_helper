@@ -87,6 +87,23 @@ class TestSourceConfig:
         assert config.limit == 1000
         assert config.maximum_offset == 5000
 
+    def test_skip_if_not_updated_default(self):
+        """Test skip_if_not_updated defaults to False."""
+        config = SourceConfig(
+            app_id="test_api_key",
+            statsDataId="0000010111",
+        )
+        assert config.skip_if_not_updated is False
+
+    def test_skip_if_not_updated_enabled(self):
+        """Test skip_if_not_updated can be set to True."""
+        config = SourceConfig(
+            app_id="test_api_key",
+            statsDataId="0000010111",
+            skip_if_not_updated=True,
+        )
+        assert config.skip_if_not_updated is True
+
 
 class TestDestinationConfig:
     """Tests for DestinationConfig model."""
