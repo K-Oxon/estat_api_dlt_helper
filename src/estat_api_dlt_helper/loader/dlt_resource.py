@@ -215,6 +215,10 @@ def create_estat_resource(
             # Process each stats data ID
             for stats_data_id in stats_data_ids:
                 # Check UPDATED_DATE
+                # Uses source_state() instead of resource_state() because
+                # resource_state() is reset when write_disposition="replace".
+                # Note: If @dlt.source is introduced later, the state key
+                # will change and a one-time full fetch will occur (no data loss).
                 current_date = (
                     client.get_updated_date(stats_data_id)
                     if config.source.skip_if_not_updated
