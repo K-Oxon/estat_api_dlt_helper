@@ -189,6 +189,34 @@ class EstatApiClient:
         response = self._make_request(ESTAT_ENDPOINTS["stats_list"], params)
         return response.json()
 
+    def get_updated_date(self, stats_data_id: str) -> Optional[str]:
+        """Get the UPDATED_DATE for a statistical table (lightweight, limit=1).
+
+        Makes a minimal API request to retrieve only the table metadata,
+        which includes the UPDATED_DATE field indicating when the data
+        was last updated.
+
+        Args:
+            stats_data_id: Statistical data ID
+
+        Returns:
+            UPDATED_DATE string if available, None otherwise
+        """
+        response = self.get_stats_data(
+            stats_data_id=stats_data_id,
+            limit=1,
+            meta_get_flg="Y",
+            cnt_get_flg="N",
+        )
+        table_inf = (
+            response.get("GET_STATS_DATA", {})
+            .get("STATISTICAL_DATA", {})
+            .get("TABLE_INF", {})
+        )
+        if isinstance(table_inf, list):
+            table_inf = table_inf[0] if table_inf else {}
+        return table_inf.get("UPDATED_DATE")
+
     def close(self) -> None:
         """Close the session."""
         self.session.close()

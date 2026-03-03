@@ -194,6 +194,71 @@ class TestEstatApiClient:
         params = call_args[1]["params"]
         assert params["searchWord"] == "人口"
 
+    @patch("requests.Session.get")
+    def test_get_updated_date_dict(self, mock_get):
+        """Test get_updated_date when TABLE_INF is a dict."""
+        mock_response = Mock()
+        mock_response.json.return_value = {
+            "GET_STATS_DATA": {
+                "STATISTICAL_DATA": {
+                    "RESULT_INF": {"TOTAL_NUMBER": "1", "FROM_NUMBER": "1", "TO_NUMBER": "1"},
+                    "TABLE_INF": {"UPDATED_DATE": "2024-06-21"},
+                }
+            }
+        }
+        mock_response.raise_for_status.return_value = None
+        mock_get.return_value = mock_response
+
+        client = EstatApiClient(app_id="test_app_id")
+        result = client.get_updated_date("0000020202")
+
+        assert result == "2024-06-21"
+        call_args = mock_get.call_args
+        params = call_args[1]["params"]
+        assert params["limit"] == 1
+        assert params["metaGetFlg"] == "Y"
+        assert params["cntGetFlg"] == "N"
+
+    @patch("requests.Session.get")
+    def test_get_updated_date_list(self, mock_get):
+        """Test get_updated_date when TABLE_INF is a list."""
+        mock_response = Mock()
+        mock_response.json.return_value = {
+            "GET_STATS_DATA": {
+                "STATISTICAL_DATA": {
+                    "RESULT_INF": {"TOTAL_NUMBER": "1", "FROM_NUMBER": "1", "TO_NUMBER": "1"},
+                    "TABLE_INF": [{"UPDATED_DATE": "2024-06-21"}],
+                }
+            }
+        }
+        mock_response.raise_for_status.return_value = None
+        mock_get.return_value = mock_response
+
+        client = EstatApiClient(app_id="test_app_id")
+        result = client.get_updated_date("0000020202")
+
+        assert result == "2024-06-21"
+
+    @patch("requests.Session.get")
+    def test_get_updated_date_missing(self, mock_get):
+        """Test get_updated_date when UPDATED_DATE is not present."""
+        mock_response = Mock()
+        mock_response.json.return_value = {
+            "GET_STATS_DATA": {
+                "STATISTICAL_DATA": {
+                    "RESULT_INF": {"TOTAL_NUMBER": "1", "FROM_NUMBER": "1", "TO_NUMBER": "1"},
+                    "TABLE_INF": {},
+                }
+            }
+        }
+        mock_response.raise_for_status.return_value = None
+        mock_get.return_value = mock_response
+
+        client = EstatApiClient(app_id="test_app_id")
+        result = client.get_updated_date("0000020202")
+
+        assert result is None
+
     def test_close(self):
         """Test session closing"""
         client = EstatApiClient(app_id="test_app_id")
