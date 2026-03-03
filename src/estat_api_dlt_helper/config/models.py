@@ -67,6 +67,13 @@ class SourceConfig(BaseModel):
         None, description="Maximum number of records to fetch"
     )
 
+    # 更新チェック
+    skip_if_unchanged: bool = Field(
+        False,
+        description="Skip data fetch if UPDATED_DATE has not changed since last load. "
+        "Uses dlt resource state to track UPDATED_DATE per statsDataId.",
+    )
+
     # 分類事項パラメータ（cat01-cat15）
     # 動的に生成されるため、Extraで受け入れる
     model_config = ConfigDict(extra="allow")

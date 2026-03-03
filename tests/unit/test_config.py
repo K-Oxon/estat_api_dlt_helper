@@ -87,6 +87,23 @@ class TestSourceConfig:
         assert config.limit == 1000
         assert config.maximum_offset == 5000
 
+    def test_skip_if_unchanged_default(self):
+        """Test skip_if_unchanged defaults to False."""
+        config = SourceConfig(
+            app_id="test_api_key",
+            statsDataId="0000010111",
+        )
+        assert config.skip_if_unchanged is False
+
+    def test_skip_if_unchanged_enabled(self):
+        """Test skip_if_unchanged can be set to True."""
+        config = SourceConfig(
+            app_id="test_api_key",
+            statsDataId="0000010111",
+            skip_if_unchanged=True,
+        )
+        assert config.skip_if_unchanged is True
+
 
 class TestDestinationConfig:
     """Tests for DestinationConfig model."""
