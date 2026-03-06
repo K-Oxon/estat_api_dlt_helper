@@ -3,6 +3,7 @@
 from typing import Any, Dict, List, Sequence
 
 import dlt
+from dlt.extract.source import DltSource
 
 from ..config.models import EstatDltConfig
 from .dlt_resource import create_estat_resource
@@ -11,7 +12,7 @@ from .dlt_resource import create_estat_resource
 def create_estat_source(
     configs: List[EstatDltConfig],
     **source_kwargs: Any,
-) -> Any:  # DltSource
+) -> DltSource:
     """
     Create a DLT source for multiple e-Stat API tables.
 
