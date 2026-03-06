@@ -47,7 +47,7 @@ def create_estat_pipeline(
         **pipeline_kwargs: Additional keyword arguments for dlt.pipeline
 
     Returns:
-        dlt.Pipeline: Configured DLT pipeline
+        Pipeline: Configured DLT pipeline
 
     Example:
         ```python

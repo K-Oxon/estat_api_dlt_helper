@@ -133,7 +133,7 @@ def create_estat_resource(
         **resource_kwargs: Additional keyword arguments for dlt.resource
 
     Returns:
-        dlt.Resource: Configured DLT resource for e-Stat API data
+        DltResource: Configured DLT resource for e-Stat API data
 
     Example:
         ```python
