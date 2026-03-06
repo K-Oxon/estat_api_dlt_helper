@@ -3,6 +3,7 @@
 from typing import Any, Optional
 
 import dlt
+from dlt.pipeline.pipeline import Pipeline
 
 from ..config.models import EstatDltConfig
 from ..utils.logging import get_logger
@@ -24,7 +25,7 @@ def create_estat_pipeline(
     destination: Optional[Any] = None,
     staging: Optional[Any] = None,
     **pipeline_kwargs: Any,
-) -> Any:  # dlt.Pipeline
+) -> Pipeline:
     """
     Create a DLT pipeline for e-Stat API data loading.
 
