@@ -3,6 +3,7 @@
 from typing import Any, Callable, Dict, Generator, Optional
 
 import dlt
+from dlt.extract.resource import DltResource
 import pyarrow as pa
 
 from ..api.client import EstatApiClient
@@ -108,7 +109,7 @@ def create_estat_resource(
     merge_key: Optional[Any] = None,
     parallelized: Optional[bool] = None,
     **resource_kwargs: Any,
-) -> Any:  # dlt.Resource
+) -> DltResource:
     """
     Create a DLT resource for e-Stat API data.
 
@@ -132,7 +133,7 @@ def create_estat_resource(
         **resource_kwargs: Additional keyword arguments for dlt.resource
 
     Returns:
-        dlt.Resource: Configured DLT resource for e-Stat API data
+        DltResource: Configured DLT resource for e-Stat API data
 
     Example:
         ```python
