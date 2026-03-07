@@ -8,19 +8,11 @@ import pytest
 from estat_api_dlt_helper import estat_source, estat_table
 
 APP_ID: str = os.getenv("ESTAT_API_KEY", "")
-SKIP_INTEGRATION = os.getenv("SKIP_INTEGRATION_TESTS", "").lower() == "true"
-
-if not APP_ID or SKIP_INTEGRATION:
-    skip_reason = []
-    if not APP_ID:
-        skip_reason.append("ESTAT_API_KEY environment variable not set")
-    if SKIP_INTEGRATION:
-        skip_reason.append("SKIP_INTEGRATION_TESTS is set to true")
-
-    pytest.skip(" and ".join(skip_reason), allow_module_level=True)
+SKIP_INTEGRATION = not APP_ID or os.getenv("SKIP_INTEGRATION_TESTS", "").lower() == "true"
 
 
 @pytest.mark.integration
+@pytest.mark.skipif(SKIP_INTEGRATION, reason="ESTAT_API_KEY not set or SKIP_INTEGRATION_TESTS is set")
 class TestEstatSourceIntegration:
     """Integration tests for estat_source with real API."""
 
@@ -78,6 +70,7 @@ class TestEstatSourceIntegration:
 
 
 @pytest.mark.integration
+@pytest.mark.skipif(SKIP_INTEGRATION, reason="ESTAT_API_KEY not set or SKIP_INTEGRATION_TESTS is set")
 class TestEstatTableIntegration:
     """Integration tests for estat_table with real API."""
 
@@ -120,6 +113,7 @@ class TestEstatTableIntegration:
 
 
 @pytest.mark.integration
+@pytest.mark.skipif(SKIP_INTEGRATION, reason="ESTAT_API_KEY not set or SKIP_INTEGRATION_TESTS is set")
 class TestEstatTableIncrementalIntegration:
     """Integration tests for estat_table with incremental loading."""
 
@@ -146,6 +140,7 @@ class TestEstatTableIncrementalIntegration:
 
 
 @pytest.mark.integration
+@pytest.mark.skipif(SKIP_INTEGRATION, reason="ESTAT_API_KEY not set or SKIP_INTEGRATION_TESTS is set")
 class TestEstatSourceTablesIntegration:
     """Integration tests for estat_source with tables parameter."""
 

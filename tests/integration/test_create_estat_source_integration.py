@@ -6,30 +6,32 @@ import dlt
 import pytest
 
 from estat_api_dlt_helper import EstatDltConfig, create_estat_source
+from estat_api_dlt_helper.config.models import DestinationConfig, SourceConfig
 
 
-def _make_config(stats_data_id, table_name):
+def _make_config(stats_data_id: str, table_name: str) -> EstatDltConfig:
     """Create a test EstatDltConfig."""
     return EstatDltConfig(
-        source={
-            "app_id": os.getenv("ESTAT_API_KEY", ""),
-            "statsDataId": stats_data_id,
-            "limit": 100,
-            "maximum_offset": 100,
-        },
-        destination={
-            "destination": "duckdb",
-            "dataset_name": "test_create_source",
-            "table_name": table_name,
-            "write_disposition": "replace",
-            "primary_key": None,
-        },
+        source=SourceConfig(
+            app_id=os.getenv("ESTAT_API_KEY", ""),
+            statsDataId=stats_data_id,
+            limit=100,
+            maximum_offset=100,
+        ),
+        destination=DestinationConfig(
+            destination="duckdb",
+            dataset_name="test_create_source",
+            table_name=table_name,
+            write_disposition="replace",
+            primary_key=None,
+        ),
     )
 
 
 @pytest.mark.integration
 @pytest.mark.skipif(
-    not os.getenv("ESTAT_API_KEY") or os.getenv("SKIP_INTEGRATION_TESTS", "").lower() == "true",
+    not os.getenv("ESTAT_API_KEY")
+    or os.getenv("SKIP_INTEGRATION_TESTS", "").lower() == "true",
     reason="ESTAT_API_KEY not set or SKIP_INTEGRATION_TESTS is set",
 )
 class TestCreateEstatSourceIntegration:

@@ -9,8 +9,11 @@ from estat_api_dlt_helper.api.endpoints import ESTAT_ENDPOINTS
 class TestEstatApiClient:
     """Test cases for EstatApiClient"""
 
+    mock_client_cls: Mock
+    mock_client: Mock
+
     @pytest.fixture(autouse=True)
-    def mock_client(self):
+    def _mock_client(self):
         with patch("estat_api_dlt_helper.api.client.Client") as mock_cls:
             self.mock_client_cls = mock_cls
             self.mock_client = mock_cls.return_value
