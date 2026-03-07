@@ -7,7 +7,7 @@ import pytest
 
 from estat_api_dlt_helper import estat_source, estat_table
 
-APP_ID = os.getenv("ESTAT_API_KEY")
+APP_ID: str = os.getenv("ESTAT_API_KEY", "")
 SKIP_INTEGRATION = os.getenv("SKIP_INTEGRATION_TESTS", "").lower() == "true"
 
 if not APP_ID or SKIP_INTEGRATION:

@@ -208,6 +208,54 @@ source = estat_source(
 pipeline.run(source)
 ```
 
+### インクリメンタルロード（増分ロード）
+
+`estat_table` / `estat_source` は `dlt.sources.incremental` を使ったインクリメンタルロードに対応しています。
+前回ロード以降の新しい時点のデータだけを取得できるため、定期パイプラインでの全件取得を避けられます。
+
+see: [examples](examples/incremental_load_example.py)
+
+```python
+import dlt
+from estat_api_dlt_helper import estat_table
+
+pipeline = dlt.pipeline(
+    pipeline_name="estat_incremental",
+    destination="duckdb",
+    dataset_name="estat_data",
+)
+
+resource = estat_table(
+    stats_data_id="0000020201",
+    write_disposition="merge",
+    primary_key=["time", "area"],
+    incremental=dlt.sources.incremental("time", initial_value="2020000000"),
+)
+
+# 初回: initial_value 以降のデータを取得
+# 2回目以降: 前回の最大 time 値以降のデータのみ取得
+pipeline.run(resource)
+```
+
+`estat_source` でも同様に指定でき、全リソースに共通の incremental 設定が適用されます:
+
+```python
+from estat_api_dlt_helper import estat_source
+
+source = estat_source(
+    stats_data_ids=["0000020201", "0004028584"],
+    write_disposition="merge",
+    primary_key=["time", "area"],
+    incremental=dlt.sources.incremental("time", initial_value="2020000000"),
+)
+pipeline.run(source)
+```
+
+注意点:
+- `write_disposition` は `"merge"` または `"append"` と組み合わせて使用してください
+- 新しい時点の追加のみ検出されます。既存データの改訂（遡及改定）は検出できません
+- time カラムの値（例: `"2020000000"`）は辞書順で時系列順になるため、文字列比較で正しく動作します
+
 ### load_estat_dataの使い方
 
 [dlt(data load tool)](https://dlthub.com/docs/intro)のwrapperとして簡便なconfigで取得データを
