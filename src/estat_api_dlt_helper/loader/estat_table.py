@@ -81,16 +81,19 @@ def estat_table(
     merged_params = {**_DEFAULT_API_PARAMS, **api_params}
     params = _build_api_params(**merged_params)
 
-    @dlt.resource(
-        name=resource_name,
-        write_disposition=write_disposition,
-        primary_key=primary_key,
-        schema_contract={
+    resource_config: Dict[str, Any] = {
+        "name": resource_name,
+        "write_disposition": write_disposition,
+        "schema_contract": {
             "tables": "evolve",
             "columns": "evolve",
             "data_type": "freeze",
         },
-    )
+    }
+    if primary_key is not None:
+        resource_config["primary_key"] = primary_key
+
+    @dlt.resource(**resource_config)  # type: ignore[arg-type]
     def _estat_data(
         app_id: str = app_id,
     ) -> Generator[pa.Table, None, None]:

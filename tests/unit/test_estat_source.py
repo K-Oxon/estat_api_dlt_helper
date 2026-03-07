@@ -130,9 +130,7 @@ class TestEstatSource:
         for resource in source.resources.values():
             schema = resource.compute_table_schema()
             pk_cols = [
-                k
-                for k, v in schema.get("columns", {}).items()
-                if v.get("primary_key")
+                k for k, v in schema.get("columns", {}).items() if v.get("primary_key")
             ]
             assert "time_code" in pk_cols
             assert "area_code" in pk_cols
