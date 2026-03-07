@@ -3,6 +3,7 @@
 import pytest
 
 from estat_api_dlt_helper.config import EstatDltConfig
+from estat_api_dlt_helper.config.models import DestinationConfig, SourceConfig
 from estat_api_dlt_helper.loader.dlt_source import create_estat_source
 
 
@@ -10,23 +11,21 @@ STATS_DATA_ID_A = "0000020201"
 STATS_DATA_ID_B = "0004028584"
 
 
-def _make_config(stats_data_id, table_name, **kwargs):
+def _make_config(stats_data_id: str, table_name: str) -> EstatDltConfig:
     """Create a test EstatDltConfig."""
-    config_kwargs = {
-        "source": {
-            "app_id": "test_app_id",
-            "statsDataId": stats_data_id,
-        },
-        "destination": {
-            "destination": "duckdb",
-            "dataset_name": "test",
-            "table_name": table_name,
-            "write_disposition": "replace",
-            "primary_key": None,
-        },
-    }
-    config_kwargs.update(kwargs)
-    return EstatDltConfig(**config_kwargs)
+    return EstatDltConfig(
+        source=SourceConfig(
+            app_id="test_app_id",
+            statsDataId=stats_data_id,
+        ),
+        destination=DestinationConfig(
+            destination="duckdb",
+            dataset_name="test",
+            table_name=table_name,
+            write_disposition="replace",
+            primary_key=None,
+        ),
+    )
 
 
 class TestCreateEstatSource:
