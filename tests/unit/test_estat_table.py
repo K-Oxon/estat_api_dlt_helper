@@ -3,6 +3,7 @@
 import inspect
 
 import dlt
+import pytest
 from dlt.extract.resource import DltResource
 from dlt.sources import incremental as dlt_incremental
 
@@ -111,6 +112,14 @@ class TestEstatTable:
         assert isinstance(default, dlt_incremental)
         assert default.cursor_path == "time"
         assert default.initial_value == "0000000000"
+
+    def test_empty_stats_data_id_raises(self):
+        with pytest.raises(ValueError, match="stats_data_id must not be empty"):
+            estat_table(stats_data_id="", app_id="test_app_id")
+
+    def test_whitespace_stats_data_id_raises(self):
+        with pytest.raises(ValueError, match="stats_data_id must not be empty"):
+            estat_table(stats_data_id="   ", app_id="test_app_id")
 
     def test_secrets_resolved_via_env(self, monkeypatch):
         """dlt.secrets.value should be resolved from environment variables."""

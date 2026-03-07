@@ -28,6 +28,18 @@ def _normalize_stats_data_ids(
     if not stats_data_ids:
         raise ValueError("stats_data_ids must not be empty")
     if isinstance(stats_data_ids, list):
+        seen: set[str] = set()
+        duplicates: set[str] = set()
+        for sid in stats_data_ids:
+            if sid in seen:
+                duplicates.add(sid)
+            else:
+                seen.add(sid)
+        if duplicates:
+            dup_list = ", ".join(sorted(duplicates))
+            raise ValueError(
+                f"Duplicate stats_data_ids detected in list input: {dup_list}"
+            )
         return {f"estat_{sid}": sid for sid in stats_data_ids}
     return stats_data_ids
 

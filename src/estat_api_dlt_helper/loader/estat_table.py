@@ -85,6 +85,9 @@ def estat_table(
         pipeline.run(resource)
         ```
     """
+    if not stats_data_id or not stats_data_id.strip():
+        raise ValueError("stats_data_id must not be empty")
+
     resource_name = table_name or f"estat_{stats_data_id}"
 
     merged_params = {**_DEFAULT_API_PARAMS, **api_params}

@@ -45,6 +45,10 @@ class TestNormalizeStatsDataIds:
         result = _normalize_stats_data_ids(["0000020201"])
         assert result == {"estat_0000020201": "0000020201"}
 
+    def test_duplicate_ids_raises(self):
+        with pytest.raises(ValueError, match="Duplicate stats_data_ids detected"):
+            _normalize_stats_data_ids(["0000020201", "0004028584", "0000020201"])
+
 
 class TestEstatSource:
     """Tests for estat_source function."""
