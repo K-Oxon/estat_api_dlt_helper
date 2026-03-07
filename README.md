@@ -160,6 +160,43 @@ see: [examples (resource)](examples/resource_example.py)
 
 see: [examples (pipeline)](examples/pipeline_example.py)
 
+### create_estat_sourceの使い方
+
+複数の統計表を一括でロードしたい場合は、`create_estat_source()`を使用できます。
+`EstatDltConfig`のリストを渡すことで、複数のリソースをまとめたdlt sourceを生成します。
+
+see: [examples](examples/source_example.py)
+
+```python
+import os
+import dlt
+from estat_api_dlt_helper import EstatDltConfig, create_estat_source
+
+app_id = os.getenv("ESTAT_API_KEY")
+
+configs = [
+    EstatDltConfig(
+        source={"app_id": app_id, "statsDataId": "0000020201"},
+        destination={"destination": "duckdb", "dataset_name": "estat", "table_name": "population"},
+    ),
+    EstatDltConfig(
+        source={"app_id": app_id, "statsDataId": "0004028584"},
+        destination={"destination": "duckdb", "dataset_name": "estat", "table_name": "household",
+                     "write_disposition": "replace", "primary_key": None},
+    ),
+]
+
+source = create_estat_source(configs)
+
+pipeline = dlt.pipeline(
+    pipeline_name="estat_multi",
+    destination="duckdb",
+    dataset_name="estat",
+)
+info = pipeline.run(source)
+print(info)
+```
+
 ## Development
 
 ```bash
