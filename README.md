@@ -191,7 +191,7 @@ source = create_estat_source(configs)
 pipeline = dlt.pipeline(
     pipeline_name="estat_multi",
     destination="duckdb",
-    dataset_name="estat_data",
+    dataset_name="estat",
 )
 info = pipeline.run(source)
 print(info)

@@ -27,9 +27,10 @@ def _make_config(stats_data_id, table_name):
     )
 
 
+@pytest.mark.integration
 @pytest.mark.skipif(
-    not os.getenv("ESTAT_API_KEY"),
-    reason="ESTAT_API_KEY not set",
+    not os.getenv("ESTAT_API_KEY") or os.getenv("SKIP_INTEGRATION_TESTS", "").lower() == "true",
+    reason="ESTAT_API_KEY not set or SKIP_INTEGRATION_TESTS is set",
 )
 class TestCreateEstatSourceIntegration:
     """Integration tests for create_estat_source with real API."""
