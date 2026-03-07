@@ -11,10 +11,13 @@
 
 e-Stat APIを利用してデータを取得し、DWHなどのデータ基盤にロードするシーンでの活用を想定しています。
 
-Pythonのライブラリとして動作し、以下の機能を提供します。
+Pythonのライブラリとして動作し、以下の３つの機能を提供します。
 
 - `parse_response`
   - APIのレスポンスをパースし、データとメタデータを結合させたArrow Tableを作成します。
+- `estat_table` / `estat_source`
+  - dltのsource/resourceデコレータを活用した宣言的APIです。
+  - 単一の統計表には `estat_table()` 、複数の統計表をまとめて扱う場合は `estat_source()` を使います。
 - `load_estat_data`
   - [dlt(data load tool)](https://dlthub.com/docs/intro)のラッパーとして動作し、
     統計表IDとテーブル名などを設定するだけで、簡単にDWHなどにロード可能です。
@@ -66,6 +69,21 @@ Win:
 $env:ESTAT_API_KEY = "YOUR_APP_ID"
 ```
 
+`estat_table` / `estat_source` を使う場合は、dltのsecrets管理によりapp_idを自動解決できます。
+
+secrets.toml:
+
+```toml
+[sources.estat]
+app_id = "YOUR_APP_ID"
+```
+
+環境変数:
+
+```bash
+export SOURCES__ESTAT__APP_ID=YOUR_APP_ID
+```
+
 ### parse_responseの使い方
 
 e-Stat APIの`/rest/3.0/app/json/getStatsData`のレスポンスを`parse_response()`に渡すことで、
@@ -111,6 +129,83 @@ except requests.RequestException as e:
     print(f"Error fetching data from API: {e}")
 except Exception as e:
     print(f"Error processing data: {e}")
+```
+
+### estat_table / estat_sourceの使い方
+
+dltの `@dlt.resource` / `@dlt.source` デコレータを活用した宣言的APIです。
+統計表IDを指定するだけでDLTのリソース/ソースを生成できます。
+
+see: [examples](examples/estat_source_example.py)
+
+単一の統計表を取得する場合:
+
+```python
+import dlt
+from estat_api_dlt_helper import estat_table
+
+resource = estat_table(
+    stats_data_id="0000020201",
+    write_disposition="replace",
+    limit=100,
+    maximum_offset=200,
+)
+
+pipeline = dlt.pipeline(
+    pipeline_name="estat",
+    destination="duckdb",
+    dataset_name="estat_data",
+)
+pipeline.run(resource)
+```
+
+複数の統計表をまとめて取得する場合:
+
+```python
+from estat_api_dlt_helper import estat_source
+
+# IDリストを指定（リソース名は自動的に estat_{id} になります）
+source = estat_source(
+    stats_data_ids=["0000020201", "0004028584"],
+    limit=100,
+    maximum_offset=200,
+)
+pipeline.run(source)
+
+# 辞書でカスタムリソース名を指定することもできます
+source = estat_source(
+    stats_data_ids={"population": "0000020201", "gdp": "0004028584"},
+    write_disposition="merge",
+    primary_key=["time_code", "area_code"],
+)
+pipeline.run(source)
+```
+
+リソースごとに個別の設定が必要な場合は、`tables` パラメータを使います:
+
+```python
+from estat_api_dlt_helper import estat_source, estat_table
+
+source = estat_source(
+    tables=[
+        estat_table(
+            stats_data_id="0000020201",
+            table_name="pop",
+            write_disposition="merge",
+            primary_key=["time_code"],
+            limit=100,
+            maximum_offset=200,
+        ),
+        estat_table(
+            stats_data_id="0004028584",
+            table_name="gdp",
+            write_disposition="replace",
+            limit=100,
+            maximum_offset=200,
+        ),
+    ],
+)
+pipeline.run(source)
 ```
 
 ### load_estat_dataの使い方
