@@ -1,5 +1,8 @@
 """Tests for estat_source function."""
 
+import inspect
+
+import dlt
 import pytest
 from dlt.extract.source import DltSource
 
@@ -179,3 +182,30 @@ class TestEstatSource:
     def test_neither_tables_nor_stats_data_ids_raises(self):
         with pytest.raises(ValueError, match="Either stats_data_ids or tables"):
             estat_source(app_id="test_app_id")
+
+
+class TestEstatSourceIncremental:
+    """Tests for estat_source incremental loading."""
+
+    def test_incremental_passed_to_all_resources(self):
+        source = estat_source(
+            stats_data_ids=["0000020201", "0004028584"],
+            app_id="test_app_id",
+            write_disposition="merge",
+            primary_key=["time", "area"],
+            incremental=dlt.sources.incremental("time", initial_value="0000000000"),
+        )
+        for resource in source.resources.values():
+            sig = inspect.signature(resource._pipe.gen.__wrapped__)  # type: ignore[union-attr]
+            default = sig.parameters["time_incremental"].default
+            assert isinstance(default, dlt.sources.incremental)
+
+    def test_incremental_none_by_default(self):
+        source = estat_source(
+            stats_data_ids="0000020201",
+            app_id="test_app_id",
+        )
+        for resource in source.resources.values():
+            sig = inspect.signature(resource._pipe.gen.__wrapped__)  # type: ignore[union-attr]
+            default = sig.parameters["time_incremental"].default
+            assert default is None

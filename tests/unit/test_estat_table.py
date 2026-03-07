@@ -1,7 +1,10 @@
 """Tests for estat_table function."""
 
+import inspect
+
 import dlt
 from dlt.extract.resource import DltResource
+from dlt.sources import incremental as dlt_incremental
 
 from estat_api_dlt_helper.loader.estat_table import (
     _build_api_params,
@@ -83,6 +86,31 @@ class TestEstatTable:
             write_disposition="append",
         )
         assert resource.write_disposition == "append"
+
+    def test_incremental_none_by_default(self):
+        """incremental 未指定時は time_incremental のデフォルト値が None."""
+        resource = estat_table(
+            stats_data_id="0000020201",
+            app_id="test_app_id",
+        )
+        sig = inspect.signature(resource._pipe.gen.__wrapped__)  # type: ignore[union-attr]
+        default = sig.parameters["time_incremental"].default
+        assert default is None
+
+    def test_incremental_parameter_sets_wrapper(self):
+        """incremental 指定時は time_incremental のデフォルト値に Incremental が設定される."""
+        resource = estat_table(
+            stats_data_id="0000020201",
+            app_id="test_app_id",
+            write_disposition="merge",
+            primary_key=["time", "area"],
+            incremental=dlt_incremental("time", initial_value="0000000000"),
+        )
+        sig = inspect.signature(resource._pipe.gen.__wrapped__)  # type: ignore[union-attr]
+        default = sig.parameters["time_incremental"].default
+        assert isinstance(default, dlt_incremental)
+        assert default.cursor_path == "time"
+        assert default.initial_value == "0000000000"
 
     def test_secrets_resolved_via_env(self, monkeypatch):
         """dlt.secrets.value should be resolved from environment variables."""

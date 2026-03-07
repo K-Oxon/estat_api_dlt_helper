@@ -120,6 +120,32 @@ class TestEstatTableIntegration:
 
 
 @pytest.mark.integration
+class TestEstatTableIncrementalIntegration:
+    """Integration tests for estat_table with incremental loading."""
+
+    def test_incremental_single_run(self):
+        """incremental 設定でパイプラインが正常に動作することを確認."""
+        pipeline = dlt.pipeline(
+            pipeline_name="test_estat_table_incremental",
+            destination="duckdb",
+            dataset_name="test_estat_incremental_data",
+        )
+
+        resource = estat_table(
+            stats_data_id="0000020201",
+            app_id=APP_ID,
+            table_name="pop_inc",
+            write_disposition="merge",
+            primary_key=["time", "area"],
+            incremental=dlt.sources.incremental("time", initial_value="2020000000"),
+            limit=100,
+            maximum_offset=100,
+        )
+        info = pipeline.run(resource)
+        assert info is not None
+
+
+@pytest.mark.integration
 class TestEstatSourceTablesIntegration:
     """Integration tests for estat_source with tables parameter."""
 

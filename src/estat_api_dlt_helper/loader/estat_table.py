@@ -5,6 +5,7 @@ from typing import Any, Dict, Generator, List, Optional, Union
 import dlt
 import pyarrow as pa
 from dlt.extract.resource import DltResource
+from dlt.sources import incremental as dlt_incremental
 
 from ..api.client import EstatApiClient
 from .dlt_resource import _fetch_estat_data
@@ -31,6 +32,7 @@ def estat_table(
     table_name: Optional[str] = None,
     write_disposition: str = "replace",
     primary_key: Optional[Union[str, List[str]]] = None,
+    incremental: Optional[dlt_incremental[str]] = None,
     limit: int = 100000,
     maximum_offset: Optional[int] = None,
     timeout: int = 60,
@@ -49,6 +51,13 @@ def estat_table(
         table_name: Resource/table name. Defaults to "estat_{stats_data_id}".
         write_disposition: How to write data to destination.
         primary_key: Primary key column(s) for merge disposition.
+        incremental: Optional incremental loading configuration.
+            Use dlt.sources.incremental("time", initial_value="0000000000")
+            to enable incremental loading based on the time code column.
+            When set, cdTimeFrom API parameter is automatically configured
+            using the last loaded time code value. Best used with
+            write_disposition="merge" or "append". Note that only new time
+            points are detected; revisions to existing data are not captured.
         limit: Maximum records per API request (pagination size).
         maximum_offset: Maximum total records to fetch. None for unlimited.
         timeout: API request timeout in seconds.
@@ -96,13 +105,18 @@ def estat_table(
     @dlt.resource(**resource_config)  # type: ignore[arg-type]
     def _estat_data(
         app_id: str = app_id,
+        time_incremental: Optional[dlt_incremental[str]] = incremental,
     ) -> Generator[pa.Table, None, None]:
+        request_params = dict(params)
+        if time_incremental is not None and time_incremental.start_value is not None:
+            request_params["cdTimeFrom"] = time_incremental.start_value
+
         client = EstatApiClient(app_id=app_id, timeout=timeout)
         try:
             yield from _fetch_estat_data(
                 client=client,
                 stats_data_id=stats_data_id,
-                params=params,
+                params=request_params,
                 limit=limit,
                 maximum_offset=maximum_offset,
             )

@@ -4,6 +4,7 @@ from typing import Any, Dict, Iterable, List, Optional, Union
 
 import dlt
 from dlt.extract.resource import DltResource
+from dlt.sources import incremental as dlt_incremental
 
 from .estat_table import estat_table
 
@@ -38,6 +39,7 @@ def estat_source(
     app_id: str = dlt.secrets.value,
     write_disposition: str = "replace",
     primary_key: Optional[Union[str, List[str]]] = None,
+    incremental: Optional[dlt_incremental[str]] = None,
     limit: int = 100000,
     maximum_offset: Optional[int] = None,
     timeout: int = 60,
@@ -66,6 +68,9 @@ def estat_source(
             Applied to all resources when using stats_data_ids.
         primary_key: Primary key column(s) for merge disposition.
             Applied to all resources when using stats_data_ids.
+        incremental: Optional incremental loading configuration.
+            Applied to all resources when using stats_data_ids mode.
+            Ignored when using tables mode (each table carries its own config).
         limit: Maximum records per API request (pagination size).
         maximum_offset: Maximum total records to fetch. None for unlimited.
         timeout: API request timeout in seconds.
@@ -132,6 +137,7 @@ def estat_source(
             table_name=resource_name,
             write_disposition=write_disposition,
             primary_key=primary_key,
+            incremental=incremental,
             limit=limit,
             maximum_offset=maximum_offset,
             timeout=timeout,
