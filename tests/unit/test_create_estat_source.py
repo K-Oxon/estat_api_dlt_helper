@@ -1,5 +1,7 @@
 """Tests for create_estat_source factory function."""
 
+import pytest
+
 from estat_api_dlt_helper.config import EstatDltConfig
 from estat_api_dlt_helper.loader.dlt_source import create_estat_source
 
@@ -62,3 +64,17 @@ class TestCreateEstatSource:
         source = create_estat_source(configs)
         assert "t1" in source.resources
         assert len(source.resources) == 1
+
+    def test_empty_configs_raises(self):
+        """Empty configs list raises ValueError."""
+        with pytest.raises(ValueError, match="configs must not be empty"):
+            create_estat_source([])
+
+    def test_duplicate_table_names_raises(self):
+        """Duplicate table names raise ValueError."""
+        configs = [
+            _make_config(STATS_DATA_ID_A, "same_name"),
+            _make_config(STATS_DATA_ID_B, "same_name"),
+        ]
+        with pytest.raises(ValueError, match="Duplicate table names"):
+            create_estat_source(configs)

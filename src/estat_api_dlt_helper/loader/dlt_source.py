@@ -43,6 +43,16 @@ def create_estat_source(
         source = create_estat_source(configs)
         ```
     """
+    if not configs:
+        raise ValueError("configs must not be empty")
+
+    table_names = [config.destination.table_name for config in configs]
+    duplicates = [name for name in table_names if table_names.count(name) > 1]
+    if duplicates:
+        raise ValueError(
+            f"Duplicate table names found: {sorted(set(duplicates))}"
+        )
+
     source_config: Dict[str, Any] = dict(source_kwargs)
 
     @dlt.source(**source_config)
