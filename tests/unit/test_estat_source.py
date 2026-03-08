@@ -187,6 +187,76 @@ class TestEstatSource:
         with pytest.raises(ValueError, match="Either stats_data_ids or tables"):
             estat_source(app_id="test_app_id")
 
+    def test_tables_with_write_disposition_raises(self):
+        with pytest.raises(ValueError, match="write_disposition"):
+            estat_source(
+                tables=[
+                    estat_table(
+                        stats_data_id="0000020201",
+                        app_id="test_app_id",
+                        table_name="pop",
+                    ),
+                ],
+                app_id="test_app_id",
+                write_disposition="merge",
+            )
+
+    def test_tables_with_primary_key_raises(self):
+        with pytest.raises(ValueError, match="primary_key"):
+            estat_source(
+                tables=[
+                    estat_table(
+                        stats_data_id="0000020201",
+                        app_id="test_app_id",
+                        table_name="pop",
+                    ),
+                ],
+                app_id="test_app_id",
+                primary_key=["time", "area"],
+            )
+
+    def test_tables_with_incremental_raises(self):
+        with pytest.raises(ValueError, match="incremental"):
+            estat_source(
+                tables=[
+                    estat_table(
+                        stats_data_id="0000020201",
+                        app_id="test_app_id",
+                        table_name="pop",
+                    ),
+                ],
+                app_id="test_app_id",
+                incremental=dlt.sources.incremental("time"),
+            )
+
+    def test_tables_with_api_params_raises(self):
+        with pytest.raises(ValueError, match="api_params"):
+            estat_source(
+                tables=[
+                    estat_table(
+                        stats_data_id="0000020201",
+                        app_id="test_app_id",
+                        table_name="pop",
+                    ),
+                ],
+                app_id="test_app_id",
+                lang="J",
+            )
+
+    def test_tables_with_default_args_succeeds(self):
+        """tables mode with all default values should succeed."""
+        source = estat_source(
+            tables=[
+                estat_table(
+                    stats_data_id="0000020201",
+                    app_id="test_app_id",
+                    table_name="pop",
+                ),
+            ],
+            app_id="test_app_id",
+        )
+        assert "pop" in source.resources
+
 
 class TestEstatSourceIncremental:
     """Tests for estat_source incremental loading."""

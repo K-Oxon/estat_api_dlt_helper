@@ -91,11 +91,14 @@ def estat_source(
             cdTimeTo, metaGetFlg, cntGetFlg, replaceSpChars, cat01, etc.).
 
     Returns:
-        DLT source with one resource per stats_data_id.
+        DltSource with one resource per stats_data_id
+        (the @dlt.source decorator wraps the generator into a DltSource).
 
     Raises:
         ValueError: If both stats_data_ids and tables are provided,
-            if neither is provided, or if tables is an empty list.
+            if neither is provided, if tables is an empty list,
+            or if tables is used with write_disposition/primary_key/
+            incremental/api_params arguments.
 
     Example:
         ```python
@@ -137,6 +140,21 @@ def estat_source(
         raise ValueError("tables must not be empty")
 
     if tables is not None:
+        conflicting = {
+            # True if non-default value is specified
+            "write_disposition": write_disposition != "replace",
+            "primary_key": primary_key is not None,
+            "incremental": incremental is not None,
+            "api_params": bool(api_params),  # True if not empty
+        }
+        found = [k for k, v in conflicting.items() if v]
+        if found:
+            raise ValueError(
+                f"When using 'tables' mode, the following arguments are not "
+                f"supported because each table carries its own settings: "
+                f"{', '.join(found)}. "
+                f"Remove these arguments or configure them on each estat_table() call."
+            )
         yield from tables
         return
 
