@@ -8,6 +8,8 @@ from .loader import (
     create_estat_pipeline,
     create_estat_resource,
     create_estat_source,
+    estat_source,
+    estat_table,
     load_estat_data,
 )
 from .loader.unified_schema_resource import create_unified_estat_resource
@@ -22,6 +24,9 @@ __all__ = [
     "EstatDltConfig",
     "SourceConfig",
     "DestinationConfig",
+    # Source / Resource
+    "estat_source",
+    "estat_table",
     # Loader functions
     "load_estat_data",
     "create_estat_resource",
