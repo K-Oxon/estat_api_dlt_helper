@@ -140,6 +140,11 @@ see: [examples](examples/estat_source_example.py)
 
 単一の統計表を取得する場合:
 
+> NOTE: `estat_table` を単体で使う場合、`app_id` は dlt の secrets 解決により
+> `SOURCES__ESTAT_TABLE__APP_ID` 環境変数（または `secrets.toml` の `[sources.estat_table]` セクション）から探索されます。
+> `estat_source` 経由で使う場合は `SOURCES__ESTAT__APP_ID`（`[sources.estat]`）から解決されます。
+> 混乱を避けるには、`app_id` を明示的に渡すか、`estat_source` 経由で使うことを推奨します。
+
 ```python
 import dlt
 from estat_api_dlt_helper import estat_table
