@@ -34,6 +34,7 @@ nav:
       - パーサーの基本的な使い方: examples/basic_parser_usage.md
       - 基本的なデータロード（DuckDB）: examples/basic_load_example.md
       - 基本的なデータロード（BigQuery）: examples/basic_load_example_bq.md
+      - 宣言的APIの利用（estat_table / estat_source）: examples/declarative_api_example.md
       - パイプラインの個別利用: examples/pipeline_example.md
       - リソースの個別利用: examples/resource_example.md
       - ソースの利用（複数テーブル一括ロード）: examples/source_example.md
