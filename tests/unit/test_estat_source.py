@@ -166,6 +166,46 @@ class TestEstatSource:
         assert source.resources["pop"].write_disposition == "merge"
         assert source.resources["gdp"].write_disposition == "replace"
 
+    def test_tables_app_id_propagated_from_source(self):
+        """tables モードで app_id を source にのみ設定すれば各 table に伝播される."""
+        source = estat_source(
+            tables=[
+                estat_table(
+                    stats_data_id="0000020201",
+                    app_id="placeholder",
+                    table_name="pop",
+                ),
+                estat_table(
+                    stats_data_id="0004028584",
+                    app_id="placeholder",
+                    table_name="gdp",
+                ),
+            ],
+            app_id="source_app_id",
+        )
+        for resource in source.resources.values():
+            assert resource.explicit_args.get("app_id") == "source_app_id"
+
+    def test_tables_limit_timeout_propagated_from_source(self):
+        """tables モードで limit/maximum_offset/timeout が source から伝播される."""
+        source = estat_source(
+            tables=[
+                estat_table(
+                    stats_data_id="0000020201",
+                    app_id="test_app_id",
+                    table_name="pop",
+                ),
+            ],
+            app_id="test_app_id",
+            limit=50000,
+            maximum_offset=200000,
+            timeout=120,
+        )
+        for resource in source.resources.values():
+            assert resource.explicit_args.get("limit") == 50000
+            assert resource.explicit_args.get("maximum_offset") == 200000
+            assert resource.explicit_args.get("timeout") == 120
+
     def test_tables_and_stats_data_ids_raises(self):
         with pytest.raises(ValueError, match="Cannot specify both"):
             estat_source(

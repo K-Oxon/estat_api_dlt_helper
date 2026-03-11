@@ -109,6 +109,9 @@ def estat_table(
     def _estat_data(
         app_id: str = app_id,
         time_incremental: Optional[dlt_incremental[str]] = incremental,
+        limit: int = limit,
+        maximum_offset: Optional[int] = maximum_offset,
+        timeout: int = timeout,
     ) -> Generator[pa.Table, None, None]:
         request_params = dict(params)
         if time_incremental is not None and time_incremental.start_value is not None:
