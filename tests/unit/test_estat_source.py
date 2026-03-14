@@ -206,6 +206,70 @@ class TestEstatSource:
             assert resource.explicit_args.get("maximum_offset") == 200000
             assert resource.explicit_args.get("timeout") == 120
 
+    def test_tables_per_table_limit_preserved(self):
+        """tables モードで個別に設定した limit は source の bind で上書きされない."""
+        source = estat_source(
+            tables=[
+                estat_table(
+                    stats_data_id="0000020201",
+                    app_id="test_app_id",
+                    table_name="small",
+                    limit=500,
+                ),
+                estat_table(
+                    stats_data_id="0004028584",
+                    app_id="test_app_id",
+                    table_name="default",
+                ),
+            ],
+            app_id="test_app_id",
+            limit=100000,
+        )
+        # limit=500 を明示設定 → bind で上書きされない（explicit_args に含まれない）
+        assert "limit" not in source.resources["small"].explicit_args
+        # limit 未設定 → source の値が bind で伝播される
+        assert source.resources["default"].explicit_args.get("limit") == 100000
+
+    def test_tables_per_table_all_params_preserved(self):
+        """tables モードで個別に設定した limit/maximum_offset/timeout は bind で上書きされない."""
+        source = estat_source(
+            tables=[
+                estat_table(
+                    stats_data_id="0000020201",
+                    app_id="test_app_id",
+                    table_name="custom",
+                    limit=500,
+                    maximum_offset=1000,
+                    timeout=30,
+                ),
+            ],
+            app_id="source_app_id",
+            limit=100000,
+            maximum_offset=200000,
+            timeout=120,
+        )
+        resource = source.resources["custom"]
+        # app_id は常に source から伝播
+        assert resource.explicit_args.get("app_id") == "source_app_id"
+        # 個別設定した値は bind で上書きされない
+        assert "limit" not in resource.explicit_args
+        assert "maximum_offset" not in resource.explicit_args
+        assert "timeout" not in resource.explicit_args
+
+    def test_tables_pre_bound_resource_raises(self):
+        """tables モードで bind 済みの resource を渡すと TypeError になる."""
+        table = estat_table(
+            stats_data_id="0000020201",
+            app_id="test_app_id",
+            table_name="pop",
+        )
+        table.bind(app_id="pre_bound_app_id", limit=999)
+        with pytest.raises(TypeError, match="is not callable"):
+            estat_source(
+                tables=[table],
+                app_id="source_app_id",
+            )
+
     def test_tables_and_stats_data_ids_raises(self):
         with pytest.raises(ValueError, match="Cannot specify both"):
             estat_source(

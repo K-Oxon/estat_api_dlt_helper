@@ -158,12 +158,15 @@ def estat_source(
                 f"Remove these arguments or configure them on each estat_table() call."
             )
         for table in tables:
-            table.bind(
-                app_id=app_id,
-                limit=limit,
-                maximum_offset=maximum_offset,
-                timeout=timeout,
-            )
+            table_explicit = getattr(table, "_table_explicit_args", set())
+            bind_kwargs: Dict[str, Any] = {"app_id": app_id}
+            if "limit" not in table_explicit:
+                bind_kwargs["limit"] = limit
+            if "maximum_offset" not in table_explicit:
+                bind_kwargs["maximum_offset"] = maximum_offset
+            if "timeout" not in table_explicit:
+                bind_kwargs["timeout"] = timeout
+            table.bind(**bind_kwargs)
             yield table
         return
 

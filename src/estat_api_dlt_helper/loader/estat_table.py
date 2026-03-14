@@ -10,6 +10,7 @@ from dlt.sources import incremental as dlt_incremental
 from ..api.client import EstatApiClient
 from .dlt_resource import _fetch_estat_data
 
+_UNSET: Any = object()
 
 _DEFAULT_API_PARAMS: Dict[str, str] = {
     "lang": "J",
@@ -33,9 +34,9 @@ def estat_table(
     write_disposition: str = "replace",
     primary_key: Optional[Union[str, List[str]]] = None,
     incremental: Optional[dlt_incremental[str]] = None,
-    limit: int = 100000,
-    maximum_offset: Optional[int] = None,
-    timeout: int = 60,
+    limit: int = _UNSET,  # type: ignore[assignment]  # sentinel to detect explicit args
+    maximum_offset: Optional[int] = _UNSET,  # type: ignore[assignment]  # sentinel to detect explicit args
+    timeout: int = _UNSET,  # type: ignore[assignment]  # sentinel to detect explicit args
     **api_params: Any,
 ) -> DltResource:
     """Create a DLT resource for a single e-Stat statistical table.
@@ -85,6 +86,20 @@ def estat_table(
         pipeline.run(resource)
         ```
     """
+    _table_explicit_args: set[str] = set()
+    if limit is not _UNSET:
+        _table_explicit_args.add("limit")
+    else:
+        limit = 100000
+    if maximum_offset is not _UNSET:
+        _table_explicit_args.add("maximum_offset")
+    else:
+        maximum_offset = None
+    if timeout is not _UNSET:
+        _table_explicit_args.add("timeout")
+    else:
+        timeout = 60
+
     if not stats_data_id or not stats_data_id.strip():
         raise ValueError("stats_data_id must not be empty")
 
@@ -129,4 +144,5 @@ def estat_table(
         finally:
             client.close()
 
+    _estat_data._table_explicit_args = _table_explicit_args  # type: ignore[attr-defined]
     return _estat_data
