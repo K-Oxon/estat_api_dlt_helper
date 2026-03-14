@@ -167,7 +167,7 @@ class TestEstatSource:
         assert source.resources["gdp"].write_disposition == "replace"
 
     def test_tables_app_id_propagated_from_source(self):
-        """tables モードで app_id を source にのみ設定すれば各 table に伝播される."""
+        """tables モードで source の app_id が各 table の app_id を上書きする."""
         source = estat_source(
             tables=[
                 estat_table(
@@ -186,7 +186,7 @@ class TestEstatSource:
         for resource in source.resources.values():
             assert resource.explicit_args.get("app_id") == "source_app_id"
 
-    def test_tables_limit_timeout_propagated_from_source(self):
+    def test_tables_limit_maximum_offset_timeout_propagated_from_source(self):
         """tables モードで limit/maximum_offset/timeout が source から伝播される."""
         source = estat_source(
             tables=[
