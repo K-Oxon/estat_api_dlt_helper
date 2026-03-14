@@ -71,8 +71,10 @@ def estat_source(
             - List[str]: multiple IDs (resource names: "estat_{id}")
             - Dict[str, str]: {resource_name: stats_data_id} for custom names
         tables: Pre-configured DltResource list (from estat_table).
-            When provided, write_disposition/primary_key/app_id are ignored
+            When provided, write_disposition/primary_key are ignored
             as each resource carries its own settings.
+            app_id/limit/maximum_offset/timeout are propagated to each
+            table via bind().
         app_id: e-Stat API application ID. Resolved automatically from
             secrets.toml ([sources.estat] app_id) or environment variable
             (SOURCES__ESTAT__APP_ID) if not provided.
@@ -155,7 +157,17 @@ def estat_source(
                 f"{', '.join(found)}. "
                 f"Remove these arguments or configure them on each estat_table() call."
             )
-        yield from tables
+        for table in tables:
+            table_explicit = getattr(table, "_table_explicit_args", set())
+            bind_kwargs: Dict[str, Any] = {"app_id": app_id}
+            if "limit" not in table_explicit:
+                bind_kwargs["limit"] = limit
+            if "maximum_offset" not in table_explicit:
+                bind_kwargs["maximum_offset"] = maximum_offset
+            if "timeout" not in table_explicit:
+                bind_kwargs["timeout"] = timeout
+            table.bind(**bind_kwargs)
+            yield table
         return
 
     assert stats_data_ids is not None  # guaranteed by validation above
