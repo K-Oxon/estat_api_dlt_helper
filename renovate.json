@@ -1,0 +1,39 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:recommended",
+    "helpers:pinGitHubActionDigests"
+  ],
+  "dependencyDashboard": true,
+  "minimumReleaseAge": "7 days",
+  "internalChecksFilter": "strict",
+  "schedule": [
+    "before 6am on monday"
+  ],
+  "timezone": "Asia/Tokyo",
+  "labels": [
+    "dependencies"
+  ],
+  "packageRules": [
+    {
+      "description": "Group GitHub Actions updates together",
+      "matchManagers": [
+        "github-actions"
+      ],
+      "groupName": "github-actions"
+    },
+    {
+      "description": "Group Python dependency updates managed through uv",
+      "matchDatasources": [
+        "pypi"
+      ],
+      "groupName": "python-dependencies"
+    }
+  ],
+  "lockFileMaintenance": {
+    "enabled": true,
+    "schedule": [
+      "before 6am on monday"
+    ]
+  }
+}
