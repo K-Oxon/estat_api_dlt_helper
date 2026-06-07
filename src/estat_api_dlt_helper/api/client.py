@@ -60,8 +60,12 @@ class EstatApiClient:
 
         # Add appId to params
         params = {"appId": self.app_id, **params}
+        safe_params = {
+            key: ("***REDACTED***" if key == "appId" else value)
+            for key, value in params.items()
+        }
 
-        logger.debug(f"Making request to {url} with params: {params}")
+        logger.debug(f"Making request to {url} with params: {safe_params}")
 
         response = self.client.get(
             url, params=params, headers=self.default_headers, **kwargs
