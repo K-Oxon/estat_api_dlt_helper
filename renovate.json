@@ -7,6 +7,7 @@
   "dependencyDashboard": true,
   "minimumReleaseAge": "7 days",
   "internalChecksFilter": "strict",
+  "prCreation": "not-pending",
   "schedule": [
     "before 6am on monday"
   ],
@@ -15,6 +16,23 @@
     "dependencies"
   ],
   "packageRules": [
+    {
+      "description": "Automerge low-risk pinning and digest refreshes after required checks pass",
+      "matchUpdateTypes": [
+        "pin",
+        "pinDigest",
+        "digest"
+      ],
+      "automerge": true
+    },
+    {
+      "description": "Require dashboard approval for major version updates",
+      "matchUpdateTypes": [
+        "major"
+      ],
+      "dependencyDashboardApproval": true,
+      "automerge": false
+    },
     {
       "description": "Group GitHub Actions updates together",
       "matchManagers": [
@@ -28,12 +46,20 @@
         "pypi"
       ],
       "groupName": "python-dependencies"
+    },
+    {
+      "description": "Do not automatically update the local Python runtime pin",
+      "matchManagers": [
+        "pyenv"
+      ],
+      "enabled": false
     }
   ],
   "lockFileMaintenance": {
     "enabled": true,
     "schedule": [
       "before 6am on monday"
-    ]
+    ],
+    "automerge": true
   }
 }
