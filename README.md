@@ -352,7 +352,7 @@ print(info)
 
 ```bash
 # Install development dependencies
-uv sync
+uv --no-config sync --frozen
 
 # Run tests
 uv run pytest
