@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import pyarrow as pa
 
@@ -19,7 +19,7 @@ class ArrowConverter:
         """
         self.metadata_processor = metadata_processor
 
-    def _extract_value_columns(self, values: List[Dict[str, Any]]) -> List[str]:
+    def _extract_value_columns(self, values: list[dict[str, Any]]) -> list[str]:
         """
         Extract column names from value data.
 
@@ -36,14 +36,14 @@ class ArrowConverter:
         sample = values[0]
 
         # Extract @ prefixed keys and remove the prefix
-        columns = [key.lstrip("@") for key in sample.keys() if key.startswith("@")]
+        columns = [key.lstrip("@") for key in sample if key.startswith("@")]
 
         # Add value column for the $ field
         columns.append("value")
 
         return columns
 
-    def _parse_numeric_value(self, value: Optional[str]) -> Optional[float]:
+    def _parse_numeric_value(self, value: str | None) -> float | None:
         """
         Parse numeric value from string safely.
 
@@ -68,7 +68,7 @@ class ArrowConverter:
         except (ValueError, AttributeError):
             return None
 
-    def convert_to_arrow(self, stat_data: Dict[str, Any]) -> pa.Table:
+    def convert_to_arrow(self, stat_data: dict[str, Any]) -> pa.Table:
         """
         Convert statistical data to Arrow Table.
 
@@ -87,7 +87,7 @@ class ArrowConverter:
         value_columns = self._extract_value_columns(values)
 
         # Prepare data dictionary for Arrow table
-        data_dict: Dict[str, pa.Array] = {}
+        data_dict: dict[str, pa.Array] = {}
 
         # Process TABLE_INF (table information)
         table_inf = TableInf.model_validate(stat_data["TABLE_INF"])

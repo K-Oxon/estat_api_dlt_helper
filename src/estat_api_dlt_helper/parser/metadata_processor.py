@@ -1,5 +1,3 @@
-from typing import Dict, List, Set, Tuple
-
 import pyarrow as pa
 
 from ..models import ClassInfModel, ClassObjModel
@@ -22,13 +20,13 @@ class MetadataProcessor:
             pa.DataType: Arrow struct type for the metadata
         """
         # Basic fields that always exist
-        fields: List[Tuple[str, pa.DataType]] = [
+        fields: list[tuple[str, pa.DataType]] = [
             ("code", pa.string()),
             ("name", pa.string()),
         ]
 
         # Collect additional fields from all CLASS entries
-        extra_fields: Set[str] = set()
+        extra_fields: set[str] = set()
 
         for cls in class_obj.class_info:
             attrs = cls.attributes
@@ -52,7 +50,7 @@ class MetadataProcessor:
 
     def _create_metadata_mapping(
         self, class_obj: ClassObjModel
-    ) -> Dict[str, Dict[str, str]]:
+    ) -> dict[str, dict[str, str]]:
         """
         Create metadata mapping from CLASS_OBJ.
 
@@ -65,13 +63,13 @@ class MetadataProcessor:
         Returns:
             Dict mapping codes to their metadata dictionaries
         """
-        mapping: Dict[str, Dict[str, str]] = {}
+        mapping: dict[str, dict[str, str]] = {}
 
         for cls in class_obj.class_info:
             attrs = cls.attributes
 
             # Start with required fields
-            metadata: Dict[str, str] = {
+            metadata: dict[str, str] = {
                 "code": attrs.code,
                 "name": attrs.name,
             }
@@ -93,7 +91,7 @@ class MetadataProcessor:
 
     def process_metadata(
         self, class_inf: ClassInfModel
-    ) -> Tuple[Dict[str, pa.DataType], Dict[str, Dict[str, Dict[str, str]]]]:
+    ) -> tuple[dict[str, pa.DataType], dict[str, dict[str, dict[str, str]]]]:
         """
         Process metadata to generate Arrow schema types and mappings.
 
@@ -105,8 +103,8 @@ class MetadataProcessor:
             - Dict mapping field names to their Arrow struct types
             - Dict mapping field names to their code-to-metadata mappings
         """
-        struct_types: Dict[str, pa.DataType] = {}
-        mappings: Dict[str, Dict[str, Dict[str, str]]] = {}
+        struct_types: dict[str, pa.DataType] = {}
+        mappings: dict[str, dict[str, dict[str, str]]] = {}
 
         for class_obj in class_inf.class_obj:
             field_name = class_obj.id
@@ -117,8 +115,8 @@ class MetadataProcessor:
 
     def create_arrow_schema(
         self,
-        value_columns: List[str],
-        struct_types: Dict[str, pa.DataType],
+        value_columns: list[str],
+        struct_types: dict[str, pa.DataType],
         stat_inf_type: pa.DataType,
     ) -> pa.Schema:
         """
@@ -133,7 +131,7 @@ class MetadataProcessor:
             pa.Schema: Complete Arrow schema for the table
         """
         # Start with value columns
-        fields: List[Tuple[str, pa.DataType]] = [
+        fields: list[tuple[str, pa.DataType]] = [
             (col, pa.string()) for col in value_columns if col != "value"
         ]
 

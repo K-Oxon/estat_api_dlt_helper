@@ -1,11 +1,11 @@
 import types
-from typing import Any, Dict, Type, Union, get_args, get_origin
+from typing import Any, Union, get_args, get_origin
 
 import pyarrow as pa
 from pydantic import BaseModel
 
 
-def create_arrow_struct_type(model_class: Type[BaseModel]) -> pa.DataType:
+def create_arrow_struct_type(model_class: type[BaseModel]) -> pa.DataType:
     """Create Arrow struct type from Pydantic model in a type-safe manner."""
     fields: list[tuple[str, pa.DataType]] = []
 
@@ -52,9 +52,9 @@ def create_arrow_struct_type(model_class: Type[BaseModel]) -> pa.DataType:
     return pa.struct(fields)
 
 
-def model_to_arrow_dict(model: BaseModel) -> Dict[str, Any]:
+def model_to_arrow_dict(model: BaseModel) -> dict[str, Any]:
     """Convert Pydantic model to Arrow-compatible dictionary."""
-    result: Dict[str, Any] = {}
+    result: dict[str, Any] = {}
 
     for field_name, field_info in model.__class__.model_fields.items():
         # Get the actual value from the model

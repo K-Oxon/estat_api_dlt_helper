@@ -1,6 +1,7 @@
 """DLT source for e-Stat API data."""
 
-from typing import Any, Dict, Iterable, List, Optional, Union
+from collections.abc import Iterable
+from typing import Any
 
 import dlt
 from dlt.extract.resource import DltResource
@@ -10,8 +11,8 @@ from .estat_table import estat_table
 
 
 def _normalize_stats_data_ids(
-    stats_data_ids: Union[str, List[str], Dict[str, str]],
-) -> Dict[str, str]:
+    stats_data_ids: str | list[str] | dict[str, str],
+) -> dict[str, str]:
     """Normalize stats_data_ids to Dict[resource_name, stats_data_id].
 
     Args:
@@ -46,14 +47,14 @@ def _normalize_stats_data_ids(
 
 @dlt.source(name="estat")
 def estat_source(
-    stats_data_ids: Union[str, List[str], Dict[str, str], None] = None,
-    tables: Optional[List[DltResource]] = None,
+    stats_data_ids: str | list[str] | dict[str, str] | None = None,
+    tables: list[DltResource] | None = None,
     app_id: str = dlt.secrets.value,
     write_disposition: str = "replace",
-    primary_key: Optional[Union[str, List[str]]] = None,
-    incremental: Optional[dlt_incremental[str]] = None,
+    primary_key: str | list[str] | None = None,
+    incremental: dlt_incremental[str] | None = None,
     limit: int = 100000,
-    maximum_offset: Optional[int] = None,
+    maximum_offset: int | None = None,
     timeout: int = 60,
     **api_params: Any,
 ) -> Iterable[DltResource]:
@@ -159,7 +160,7 @@ def estat_source(
             )
         for table in tables:
             table_explicit = getattr(table, "_table_explicit_args", set())
-            bind_kwargs: Dict[str, Any] = {"app_id": app_id}
+            bind_kwargs: dict[str, Any] = {"app_id": app_id}
             if "limit" not in table_explicit:
                 bind_kwargs["limit"] = limit
             if "maximum_offset" not in table_explicit:

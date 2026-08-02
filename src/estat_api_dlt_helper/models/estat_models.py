@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
@@ -14,14 +14,14 @@ class ClassAttributes(BaseMetadataModel):
 
     code: str = Field(..., alias="@code")
     name: str = Field(..., alias="@name")
-    level: Optional[str] = Field(None, alias="@level")
-    unit: Optional[str] = Field(None, alias="@unit")
-    parent_code: Optional[str] = Field(None, alias="@parentCode")
-    extra_attributes: Dict[str, Any] = Field(default_factory=dict)
+    level: str | None = Field(None, alias="@level")
+    unit: str | None = Field(None, alias="@unit")
+    parent_code: str | None = Field(None, alias="@parentCode")
+    extra_attributes: dict[str, Any] = Field(default_factory=dict)
 
     @model_validator(mode="before")
     @classmethod
-    def extract_extra_attributes(cls, values: Dict[str, Any]) -> Dict[str, Any]:
+    def extract_extra_attributes(cls, values: dict[str, Any]) -> dict[str, Any]:
         """Extract additional attributes starting with @."""
         if not isinstance(values, dict):
             return values
@@ -46,7 +46,7 @@ class ClassModel(BaseMetadataModel):
 
     @model_validator(mode="before")
     @classmethod
-    def construct_attributes(cls, values: Dict[str, Any]) -> Dict[str, Any]:
+    def construct_attributes(cls, values: dict[str, Any]) -> dict[str, Any]:
         """Construct ClassAttributes from dict."""
         if isinstance(values, dict) and "@code" in values:
             values["attributes"] = ClassAttributes.model_validate(values)
@@ -58,22 +58,25 @@ class ClassObjModel(BaseMetadataModel):
 
     id: str = Field(..., alias="@id")
     name: str = Field(..., alias="@name")
-    class_info: List[ClassModel] = Field(..., alias="CLASS")
+    class_info: list[ClassModel] = Field(..., alias="CLASS")
 
     @model_validator(mode="before")
     @classmethod
-    def ensure_class_list(cls, values: Dict[str, Any]) -> Dict[str, Any]:
+    def ensure_class_list(cls, values: dict[str, Any]) -> dict[str, Any]:
         """Ensure CLASS is always treated as a list."""
-        if isinstance(values, dict) and "CLASS" in values:
-            if not isinstance(values["CLASS"], list):
-                values["CLASS"] = [values["CLASS"]]
+        if (
+            isinstance(values, dict)
+            and "CLASS" in values
+            and not isinstance(values["CLASS"], list)
+        ):
+            values["CLASS"] = [values["CLASS"]]
         return values
 
 
 class ClassInfModel(BaseMetadataModel):
     """Model for entire CLASS_INF section."""
 
-    class_obj: List[ClassObjModel] = Field(..., alias="CLASS_OBJ")
+    class_obj: list[ClassObjModel] = Field(..., alias="CLASS_OBJ")
 
 
 class CodeValue(BaseMetadataModel):
@@ -94,42 +97,32 @@ class StatisticsNameSpec(BaseMetadataModel):
     """Model for statistics name specifications."""
 
     tabulation_category: str = Field(..., alias="TABULATION_CATEGORY")
-    tabulation_sub_category1: Optional[str] = Field(
-        None, alias="TABULATION_SUB_CATEGORY1"
-    )
-    tabulation_sub_category2: Optional[str] = Field(
-        None, alias="TABULATION_SUB_CATEGORY2"
-    )
-    tabulation_sub_category3: Optional[str] = Field(
-        None, alias="TABULATION_SUB_CATEGORY3"
-    )
-    tabulation_sub_category4: Optional[str] = Field(
-        None, alias="TABULATION_SUB_CATEGORY4"
-    )
-    tabulation_sub_category5: Optional[str] = Field(
-        None, alias="TABULATION_SUB_CATEGORY5"
-    )
+    tabulation_sub_category1: str | None = Field(None, alias="TABULATION_SUB_CATEGORY1")
+    tabulation_sub_category2: str | None = Field(None, alias="TABULATION_SUB_CATEGORY2")
+    tabulation_sub_category3: str | None = Field(None, alias="TABULATION_SUB_CATEGORY3")
+    tabulation_sub_category4: str | None = Field(None, alias="TABULATION_SUB_CATEGORY4")
+    tabulation_sub_category5: str | None = Field(None, alias="TABULATION_SUB_CATEGORY5")
 
 
 class Description(BaseMetadataModel):
     """Model for statistics description."""
 
-    tabulation_category_explanation: Optional[str] = Field(
+    tabulation_category_explanation: str | None = Field(
         None, alias="TABULATION_CATEGORY_EXPLANATION"
     )
-    tabulation_sub_category_explanation1: Optional[str] = Field(
+    tabulation_sub_category_explanation1: str | None = Field(
         None, alias="TABULATION_SUB_CATEGORY_EXPLANATION1"
     )
-    tabulation_sub_category_explanation2: Optional[str] = Field(
+    tabulation_sub_category_explanation2: str | None = Field(
         None, alias="TABULATION_SUB_CATEGORY_EXPLANATION2"
     )
-    tabulation_sub_category_explanation3: Optional[str] = Field(
+    tabulation_sub_category_explanation3: str | None = Field(
         None, alias="TABULATION_SUB_CATEGORY_EXPLANATION3"
     )
-    tabulation_sub_category_explanation4: Optional[str] = Field(
+    tabulation_sub_category_explanation4: str | None = Field(
         None, alias="TABULATION_SUB_CATEGORY_EXPLANATION4"
     )
-    tabulation_sub_category_explanation5: Optional[str] = Field(
+    tabulation_sub_category_explanation5: str | None = Field(
         None, alias="TABULATION_SUB_CATEGORY_EXPLANATION5"
     )
 
@@ -163,7 +156,7 @@ class TableInf(BaseMetadataModel):
 
     @model_validator(mode="before")
     @classmethod
-    def handle_description(cls, values: Dict[str, Any]) -> Dict[str, Any]:
+    def handle_description(cls, values: dict[str, Any]) -> dict[str, Any]:
         """Handle DESCRIPTION field that can be either a dict or empty string."""
         if isinstance(values, dict) and "DESCRIPTION" in values:
             desc = values["DESCRIPTION"]

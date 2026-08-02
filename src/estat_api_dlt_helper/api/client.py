@@ -1,4 +1,5 @@
-from typing import Any, Dict, Generator, Optional
+from collections.abc import Generator
+from typing import Any
 
 from dlt.sources.helpers.requests.retry import Client
 from requests import Response
@@ -27,7 +28,7 @@ class EstatApiClient:
     def __init__(
         self,
         app_id: str,
-        base_url: Optional[str] = None,
+        base_url: str | None = None,
         timeout: int = 60,
     ):
         """Initialize e-Stat API client.
@@ -44,7 +45,7 @@ class EstatApiClient:
         self.default_headers = {"accept": "application/json"}
 
     def _make_request(
-        self, endpoint: str, params: Dict[str, Any], **kwargs: Any
+        self, endpoint: str, params: dict[str, Any], **kwargs: Any
     ) -> Response:
         """Make HTTP request to e-Stat API.
 
@@ -85,7 +86,7 @@ class EstatApiClient:
         replace_sp_chars: str = "0",
         lang: str = "J",
         **additional_params: Any,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Get statistical data from e-Stat API.
 
         Args:
@@ -121,7 +122,7 @@ class EstatApiClient:
 
     def get_stats_data_generator(
         self, stats_data_id: str, limit_per_request: int = 100000, **kwargs: Any
-    ) -> Generator[Dict[str, Any], None, None]:
+    ) -> Generator[dict[str, Any], None, None]:
         """Get statistical data as a generator for pagination.
 
         Args:
@@ -167,11 +168,11 @@ class EstatApiClient:
 
     def get_stats_list(
         self,
-        search_word: Optional[str] = None,
-        survey_years: Optional[str] = None,
-        stats_code: Optional[str] = None,
+        search_word: str | None = None,
+        survey_years: str | None = None,
+        stats_code: str | None = None,
         **kwargs: Any,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Get list of available statistics.
 
         Args:

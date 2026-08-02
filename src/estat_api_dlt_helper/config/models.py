@@ -1,6 +1,6 @@
 """Configuration models for estat_api_dlt_helper."""
 
-from typing import Any, Dict, List, Literal, Optional, Union
+from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
@@ -20,11 +20,13 @@ class SourceConfig(BaseModel):
     """
 
     app_id: str = Field(..., description="e-Stat API application ID (API key)")
-    statsDataId: Union[str, List[str]] = Field(
+    statsDataId: str | list[str] = Field(
         ...,
         description="Statistical table ID(s) to fetch. Can be a single ID or list of IDs",
     )
-    lang: Literal["J", "E"] = Field(default="J", description="Language of the API response")
+    lang: Literal["J", "E"] = Field(
+        default="J", description="Language of the API response"
+    )
     metaGetFlg: Literal["Y", "N"] = Field(
         default="Y", description="Whether to fetch metadata (Y/N)"
     )
@@ -33,10 +35,10 @@ class SourceConfig(BaseModel):
     )
 
     # 以下オプションパラメータ
-    explanationGetFlg: Optional[Literal["Y", "N"]] = Field(
+    explanationGetFlg: Literal["Y", "N"] | None = Field(
         default="Y", description="Whether to fetch explanations (Y/N)"
     )
-    annotationGetFlg: Optional[Literal["Y", "N"]] = Field(
+    annotationGetFlg: Literal["Y", "N"] | None = Field(
         default="Y", description="Whether to fetch annotations (Y/N)"
     )
     replaceSpChars: Literal["0", "1", "2", "3"] = Field(
@@ -45,25 +47,25 @@ class SourceConfig(BaseModel):
     )
 
     # データ選択パラメータ
-    lvTab: Optional[str] = Field(default=None, description="Table level")
-    cdTab: Optional[str] = Field(default=None, description="Table code")
-    cdTabFrom: Optional[str] = Field(default=None, description="Table code from")
-    cdTabTo: Optional[str] = Field(default=None, description="Table code to")
-    lvTime: Optional[str] = Field(default=None, description="Time level")
-    cdTime: Optional[str] = Field(default=None, description="Time code")
-    cdTimeFrom: Optional[str] = Field(default=None, description="Time code from")
-    cdTimeTo: Optional[str] = Field(default=None, description="Time code to")
-    lvArea: Optional[str] = Field(default=None, description="Area level")
-    cdArea: Optional[str] = Field(default=None, description="Area code")
-    cdAreaFrom: Optional[str] = Field(default=None, description="Area code from")
-    cdAreaTo: Optional[str] = Field(default=None, description="Area code to")
+    lvTab: str | None = Field(default=None, description="Table level")
+    cdTab: str | None = Field(default=None, description="Table code")
+    cdTabFrom: str | None = Field(default=None, description="Table code from")
+    cdTabTo: str | None = Field(default=None, description="Table code to")
+    lvTime: str | None = Field(default=None, description="Time level")
+    cdTime: str | None = Field(default=None, description="Time code")
+    cdTimeFrom: str | None = Field(default=None, description="Time code from")
+    cdTimeTo: str | None = Field(default=None, description="Time code to")
+    lvArea: str | None = Field(default=None, description="Area level")
+    cdArea: str | None = Field(default=None, description="Area code")
+    cdAreaFrom: str | None = Field(default=None, description="Area code from")
+    cdAreaTo: str | None = Field(default=None, description="Area code to")
     # ... see https://api.e-stat.go.jp/swagger-ui/e-statapi3.0.html#/
 
     # ページネーションパラメータ
     limit: int = Field(
         default=100000, description="Maximum number of records to fetch per request"
     )
-    maximum_offset: Optional[int] = Field(
+    maximum_offset: int | None = Field(
         default=None, description="Maximum number of records to fetch"
     )
 
@@ -73,7 +75,7 @@ class SourceConfig(BaseModel):
 
     @field_validator("statsDataId")
     @classmethod
-    def validate_stats_data_id(cls, v: Union[str, List[str]]) -> Union[str, List[str]]:
+    def validate_stats_data_id(cls, v: str | list[str]) -> str | list[str]:
         """Ensure statsDataId is valid."""
         if isinstance(v, list):
             if not v:
@@ -101,7 +103,7 @@ class DestinationConfig(BaseModel):
         primary_key: Primary key columns for merge operations.
     """
 
-    destination: Union[str, Any] = Field(
+    destination: str | Any = Field(
         ...,
         description="DLT destination configuration | e.g. 'bigquery', 'duckdb', 'filesystem', 'motherduck'",
     )
@@ -110,28 +112,30 @@ class DestinationConfig(BaseModel):
     write_disposition: Literal["append", "replace", "merge"] = Field(
         default="merge", description="How to write data to the destination table"
     )
-    primary_key: Optional[Union[str, List[str]]] = Field(
+    primary_key: str | list[str] | None = Field(
         default=["time", "area", "cat01"],
         description="Primary key column(s) for merge operations",
     )
 
     # DLT pipeline configuration
-    pipeline_name: Optional[str] = Field(default=None, description="Name of the DLT pipeline")
+    pipeline_name: str | None = Field(
+        default=None, description="Name of the DLT pipeline"
+    )
     dev_mode: bool = Field(default=False, description="Enable DLT development mode")
 
     # Additional destination-specific configuration
-    credentials: Optional[Dict[str, Any]] = Field(
+    credentials: dict[str, Any] | None = Field(
         default=None, description="Destination-specific credentials"
     )
-    extra_options: Optional[Dict[str, Any]] = Field(
+    extra_options: dict[str, Any] | None = Field(
         default=None, description="Additional destination-specific options"
     )
 
     @field_validator("primary_key")
     @classmethod
     def validate_primary_key(
-        cls, v: Optional[Union[str, List[str]]], info
-    ) -> Optional[Union[str, List[str]]]:
+        cls, v: str | list[str] | None, info
+    ) -> str | list[str] | None:
         """Validate primary key is provided for merge operations."""
         write_disposition = info.data.get("write_disposition")
         if write_disposition == "merge" and not v:
@@ -161,18 +165,23 @@ class EstatDltConfig(BaseModel):
     )
 
     # Optional processing configuration
-    batch_size: Optional[int] = Field(
+    batch_size: int | None = Field(
         default=None, description="Number of records to process in each batch"
     )
-    max_retries: int = Field(default=3, description="Maximum number of API retry attempts")
-    timeout: Optional[int] = Field(default=None, description="API request timeout in seconds")
+    max_retries: int = Field(
+        default=3, description="Maximum number of API retry attempts"
+    )
+    timeout: int | None = Field(
+        default=None, description="API request timeout in seconds"
+    )
 
     # Data transformation options
     flatten_metadata: bool = Field(
         default=False, description="Whether to flatten metadata into table columns"
     )
     include_api_metadata: bool = Field(
-        default=True, description="Whether to include API response metadata in the table"
+        default=True,
+        description="Whether to include API response metadata in the table",
     )
 
     model_config = ConfigDict(

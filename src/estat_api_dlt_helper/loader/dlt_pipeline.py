@@ -1,6 +1,6 @@
 """DLT pipeline creation for e-Stat API data."""
 
-from typing import Any, Optional
+from typing import Any
 
 import dlt
 from dlt.pipeline.pipeline import Pipeline
@@ -14,16 +14,16 @@ logger = get_logger(__name__)
 def create_estat_pipeline(
     config: EstatDltConfig,
     *,
-    pipeline_name: Optional[str] = None,
-    pipelines_dir: Optional[str] = None,
-    dataset_name: Optional[str] = None,
-    import_schema_path: Optional[str] = None,
-    export_schema_path: Optional[str] = None,
-    dev_mode: Optional[bool] = None,
-    refresh: Optional[str] = None,
-    progress: Optional[str] = None,
-    destination: Optional[Any] = None,
-    staging: Optional[Any] = None,
+    pipeline_name: str | None = None,
+    pipelines_dir: str | None = None,
+    dataset_name: str | None = None,
+    import_schema_path: str | None = None,
+    export_schema_path: str | None = None,
+    dev_mode: bool | None = None,
+    refresh: str | None = None,
+    progress: str | None = None,
+    destination: Any | None = None,
+    staging: Any | None = None,
     **pipeline_kwargs: Any,
 ) -> Pipeline:
     """
@@ -74,8 +74,6 @@ def create_estat_pipeline(
             stats_id = "_".join(stats_id[:3])  # Limit to first 3 IDs
             if len(config.source.statsDataId) > 3:
                 stats_id += "_etc"
-        else:
-            stats_id = stats_id
 
         name = f"estat_{config.destination.dataset_name}_{stats_id}"
 
@@ -83,13 +81,11 @@ def create_estat_pipeline(
     dest = destination or config.destination.destination
 
     # Handle destination-specific configurations
-    if isinstance(dest, str):
-        # String destination name
-        if config.destination.credentials:
-            # Create destination with credentials
-            # For now, just use the string destination name
-            # DLT will handle the destination creation internally
-            pass
+    if isinstance(dest, str) and config.destination.credentials:
+        # Create destination with credentials
+        # For now, just use the string destination name
+        # DLT will handle the destination creation internally
+        pass
 
     # Prepare pipeline configuration
     pipeline_config = {

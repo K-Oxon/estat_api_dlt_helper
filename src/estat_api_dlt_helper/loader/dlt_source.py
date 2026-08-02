@@ -1,6 +1,7 @@
 """DLT source creation for e-Stat API multi-table data."""
 
-from typing import Any, Dict, List, Sequence
+from collections.abc import Sequence
+from typing import Any
 
 import dlt
 from dlt.extract.source import DltSource
@@ -10,7 +11,7 @@ from .dlt_resource import create_estat_resource
 
 
 def create_estat_source(
-    configs: List[EstatDltConfig],
+    configs: list[EstatDltConfig],
     **source_kwargs: Any,
 ) -> DltSource:
     """
@@ -49,15 +50,13 @@ def create_estat_source(
     table_names = [config.destination.table_name for config in configs]
     duplicates = [name for name in table_names if table_names.count(name) > 1]
     if duplicates:
-        raise ValueError(
-            f"Duplicate table names found: {sorted(set(duplicates))}"
-        )
+        raise ValueError(f"Duplicate table names found: {sorted(set(duplicates))}")
 
-    source_config: Dict[str, Any] = dict(source_kwargs)
+    source_config: dict[str, Any] = dict(source_kwargs)
 
     @dlt.source(**source_config)
     def estat_source() -> Sequence[Any]:
-        resources: List[Any] = []
+        resources: list[Any] = []
         for config in configs:
             resource = create_estat_resource(config)
             resources.append(resource)

@@ -37,7 +37,8 @@ Example:
 """
 
 from collections import OrderedDict
-from typing import Any, Callable, Dict, Generator, Optional
+from collections.abc import Callable, Generator
+from typing import Any
 
 import dlt
 import pyarrow as pa
@@ -59,8 +60,8 @@ logger = get_logger(__name__)
 
 
 def _convert_to_unified_metadata(
-    field_name: str, metadata_dict: Dict[str, Any]
-) -> Optional[Any]:
+    field_name: str, metadata_dict: dict[str, Any]
+) -> Any | None:
     """Convert metadata dictionary to unified metadata model."""
     if not metadata_dict:
         return None
@@ -84,7 +85,7 @@ def _convert_to_unified_metadata(
 
 def _convert_arrow_to_unified_records(
     arrow_table: pa.Table,
-) -> Generator[Dict[str, Any], None, None]:
+) -> Generator[dict[str, Any], None, None]:
     """Convert Arrow table to unified records using native PyArrow operations.
 
     This optimized version avoids pandas conversion and uses efficient
@@ -177,10 +178,10 @@ def _convert_arrow_to_unified_records(
 def _fetch_unified_estat_data(
     client: EstatApiClient,
     stats_data_id: str,
-    params: Dict[str, Any],
+    params: dict[str, Any],
     limit: int = 100000,
-    maximum_offset: Optional[int] = None,
-) -> Generator[Dict[str, Any], None, None]:
+    maximum_offset: int | None = None,
+) -> Generator[dict[str, Any], None, None]:
     """Fetch data from e-Stat API and convert to unified records."""
     logger.info(f"Fetching unified data for stats_data_id: {stats_data_id}")
 
@@ -219,18 +220,18 @@ def _fetch_unified_estat_data(
 def create_unified_estat_resource(
     config: EstatDltConfig,
     *,
-    name: Optional[str] = None,
-    primary_key: Optional[Any] = None,
-    write_disposition: Optional[str] = None,
-    columns: Optional[Any] = None,
-    table_format: Optional[str] = None,
-    file_format: Optional[str] = None,
-    schema_contract: Optional[Any] = None,
-    table_name: Optional[Callable[[Any], str]] = None,
-    max_table_nesting: Optional[int] = None,
-    selected: Optional[bool] = None,
-    merge_key: Optional[Any] = None,
-    parallelized: Optional[bool] = None,
+    name: str | None = None,
+    primary_key: Any | None = None,
+    write_disposition: str | None = None,
+    columns: Any | None = None,
+    table_format: str | None = None,
+    file_format: str | None = None,
+    schema_contract: Any | None = None,
+    table_name: Callable[[Any], str] | None = None,
+    max_table_nesting: int | None = None,
+    selected: bool | None = None,
+    merge_key: Any | None = None,
+    parallelized: bool | None = None,
     **resource_kwargs: Any,
 ) -> Any:  # dlt.Resource
     """
@@ -311,7 +312,7 @@ def create_unified_estat_resource(
         stats_data_ids = [stats_data_ids]
 
     # Prepare resource configuration
-    resource_config: Dict[str, Any] = {
+    resource_config: dict[str, Any] = {
         "name": name or config.destination.table_name,
         "write_disposition": write_disposition or config.destination.write_disposition,
         "schema_contract": schema_contract
@@ -354,9 +355,9 @@ def create_unified_estat_resource(
     resource_config.update(resource_kwargs)
 
     @dlt.resource(**resource_config)
-    def unified_estat_data() -> Generator[Dict[str, Any], None, None]:
+    def unified_estat_data() -> Generator[dict[str, Any], None, None]:
         """Generator function for unified e-Stat data."""
-        client_kwargs: Dict[str, Any] = {"app_id": config.source.app_id}
+        client_kwargs: dict[str, Any] = {"app_id": config.source.app_id}
         if config.timeout is not None:
             client_kwargs["timeout"] = config.timeout
         client = EstatApiClient(**client_kwargs)

@@ -1,10 +1,11 @@
 """DLT resource creation for e-Stat API data."""
 
-from typing import Any, Callable, Dict, Generator, Optional
+from collections.abc import Callable, Generator
+from typing import Any
 
 import dlt
-from dlt.extract.resource import DltResource
 import pyarrow as pa
+from dlt.extract.resource import DltResource
 
 from ..api.client import EstatApiClient
 from ..config.models import EstatDltConfig
@@ -14,7 +15,7 @@ from ..utils.logging import get_logger
 logger = get_logger(__name__)
 
 
-def _create_api_params(config: EstatDltConfig) -> Dict[str, Any]:
+def _create_api_params(config: EstatDltConfig) -> dict[str, Any]:
     """Create API parameters from config."""
     params = {
         "lang": config.source.lang,
@@ -58,9 +59,9 @@ def _create_api_params(config: EstatDltConfig) -> Dict[str, Any]:
 def _fetch_estat_data(
     client: EstatApiClient,
     stats_data_id: str,
-    params: Dict[str, Any],
+    params: dict[str, Any],
     limit: int = 100000,
-    maximum_offset: Optional[int] = None,
+    maximum_offset: int | None = None,
 ) -> Generator[pa.Table, None, None]:
     """Fetch data from e-Stat API and convert to Arrow format."""
     logger.info(f"Fetching data for stats_data_id: {stats_data_id}")
@@ -96,18 +97,18 @@ def _fetch_estat_data(
 def create_estat_resource(
     config: EstatDltConfig,
     *,
-    name: Optional[str] = None,
-    primary_key: Optional[Any] = None,
-    write_disposition: Optional[str] = None,
-    columns: Optional[Any] = None,
-    table_format: Optional[str] = None,
-    file_format: Optional[str] = None,
-    schema_contract: Optional[Any] = None,
-    table_name: Optional[Callable[[Any], str]] = None,
-    max_table_nesting: Optional[int] = None,
-    selected: Optional[bool] = None,
-    merge_key: Optional[Any] = None,
-    parallelized: Optional[bool] = None,
+    name: str | None = None,
+    primary_key: Any | None = None,
+    write_disposition: str | None = None,
+    columns: Any | None = None,
+    table_format: str | None = None,
+    file_format: str | None = None,
+    schema_contract: Any | None = None,
+    table_name: Callable[[Any], str] | None = None,
+    max_table_nesting: int | None = None,
+    selected: bool | None = None,
+    merge_key: Any | None = None,
+    parallelized: bool | None = None,
     **resource_kwargs: Any,
 ) -> DltResource:
     """
@@ -160,7 +161,7 @@ def create_estat_resource(
         stats_data_ids = [stats_data_ids]
 
     # Prepare resource configuration
-    resource_config: Dict[str, Any] = {
+    resource_config: dict[str, Any] = {
         "name": name or config.destination.table_name,
         "write_disposition": write_disposition or config.destination.write_disposition,
         # Allow schema evolution for handling different metadata structures
@@ -207,7 +208,7 @@ def create_estat_resource(
     @dlt.resource(**resource_config)  # type: ignore
     def estat_data() -> Generator[pa.Table, None, None]:
         """Generator function for e-Stat data."""
-        client_kwargs: Dict[str, Any] = {"app_id": config.source.app_id}
+        client_kwargs: dict[str, Any] = {"app_id": config.source.app_id}
         if config.timeout is not None:
             client_kwargs["timeout"] = config.timeout
         client = EstatApiClient(**client_kwargs)

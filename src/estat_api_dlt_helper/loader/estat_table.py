@@ -1,6 +1,7 @@
 """DLT resource for a single e-Stat statistical table."""
 
-from typing import Any, Dict, Generator, List, Optional, Union
+from collections.abc import Generator
+from typing import Any
 
 import dlt
 import pyarrow as pa
@@ -12,7 +13,7 @@ from .dlt_resource import _fetch_estat_data
 
 _UNSET: Any = object()
 
-_DEFAULT_API_PARAMS: Dict[str, str] = {
+_DEFAULT_API_PARAMS: dict[str, str] = {
     "lang": "J",
     "metaGetFlg": "Y",
     "cntGetFlg": "N",
@@ -22,7 +23,7 @@ _DEFAULT_API_PARAMS: Dict[str, str] = {
 }
 
 
-def _build_api_params(**params: Any) -> Dict[str, Any]:
+def _build_api_params(**params: Any) -> dict[str, Any]:
     """Build API parameters dictionary, filtering out None values."""
     return {k: v for k, v in params.items() if v is not None}
 
@@ -30,12 +31,12 @@ def _build_api_params(**params: Any) -> Dict[str, Any]:
 def estat_table(
     stats_data_id: str,
     app_id: str = dlt.secrets.value,
-    table_name: Optional[str] = None,
+    table_name: str | None = None,
     write_disposition: str = "replace",
-    primary_key: Optional[Union[str, List[str]]] = None,
-    incremental: Optional[dlt_incremental[str]] = None,
+    primary_key: str | list[str] | None = None,
+    incremental: dlt_incremental[str] | None = None,
     limit: int = _UNSET,  # type: ignore[assignment]  # sentinel to detect explicit args
-    maximum_offset: Optional[int] = _UNSET,  # type: ignore[assignment]  # sentinel to detect explicit args
+    maximum_offset: int | None = _UNSET,  # type: ignore[assignment]  # sentinel to detect explicit args
     timeout: int = _UNSET,  # type: ignore[assignment]  # sentinel to detect explicit args
     **api_params: Any,
 ) -> DltResource:
@@ -108,7 +109,7 @@ def estat_table(
     merged_params = {**_DEFAULT_API_PARAMS, **api_params}
     params = _build_api_params(**merged_params)
 
-    resource_config: Dict[str, Any] = {
+    resource_config: dict[str, Any] = {
         "name": resource_name,
         "write_disposition": write_disposition,
         "schema_contract": {
@@ -123,9 +124,9 @@ def estat_table(
     @dlt.resource(**resource_config)  # type: ignore[arg-type]
     def _estat_data(
         app_id: str = app_id,
-        time_incremental: Optional[dlt_incremental[str]] = incremental,
+        time_incremental: dlt_incremental[str] | None = incremental,
         limit: int = limit,
-        maximum_offset: Optional[int] = maximum_offset,
+        maximum_offset: int | None = maximum_offset,
         timeout: int = timeout,
     ) -> Generator[pa.Table, None, None]:
         request_params = dict(params)

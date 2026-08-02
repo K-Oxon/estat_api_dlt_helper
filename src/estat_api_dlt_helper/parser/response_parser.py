@@ -1,4 +1,4 @@
-from typing import Any, Dict
+from typing import Any
 
 import pyarrow as pa
 
@@ -6,7 +6,7 @@ from .arrow_converter import ArrowConverter
 from .metadata_processor import MetadataProcessor
 
 
-def parse_response(data: Dict[str, Any]) -> pa.Table:
+def parse_response(data: dict[str, Any]) -> pa.Table:
     """
     Parse e-Stat API response data and convert to Arrow table.
 

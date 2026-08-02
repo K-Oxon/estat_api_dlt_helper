@@ -3,7 +3,7 @@
 from .models import DestinationConfig, EstatDltConfig, SourceConfig
 
 __all__ = [
+    "DestinationConfig",
     "EstatDltConfig",
     "SourceConfig",
-    "DestinationConfig",
 ]

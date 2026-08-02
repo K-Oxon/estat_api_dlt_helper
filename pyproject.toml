@@ -64,10 +64,8 @@ markers = [
     "integration: marks tests as integration tests (deselect with '-m \"not integration\"')",
 ]
 
-[tool.ruff.lint]
-# Keep the pre-0.16 default rule set until a dedicated modernization PR.
-# https://astral.sh/blog/ruff-v0.16.0
-select = ["E4", "E7", "E9", "F"]
+[tool.uv]
+exclude-newer = "7 days"
 
 [tool.pyright]
 include = ["src"]

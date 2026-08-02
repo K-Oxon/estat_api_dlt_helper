@@ -1,6 +1,6 @@
 """Load manager for e-Stat API data to DLT."""
 
-from typing import Any, Dict, Optional
+from typing import Any
 
 from ..config.models import EstatDltConfig
 from ..utils.logging import get_logger
@@ -13,7 +13,7 @@ logger = get_logger(__name__)
 def load_estat_data(
     config: EstatDltConfig,
     *,
-    credentials: Optional[Dict[str, Any]] = None,
+    credentials: dict[str, Any] | None = None,
     **kwargs: Any,
 ) -> Any:  # dlt.common.pipeline.LoadInfo
     """
